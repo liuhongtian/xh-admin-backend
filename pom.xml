@@ -81,7 +81,6 @@
     <build>
         <!--  全局通用配置    -->
         <!--  参考文档 https://docs.spring.io/spring-boot/docs/3.0.5/maven-plugin/reference/htmlsingle/#packaging      -->
-        <finalName>sxh-bms-${project.artifactId}</finalName>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -89,18 +88,16 @@
                     <artifactId>spring-boot-maven-plugin</artifactId>
                     <configuration>
                         <image>
-<!--                            <builder>${project.basedir}/docker/Dockerfile</builder>-->
-<!--                            <runImage>${project.basedir}/docker/Run</runImage>-->
-                            <name>xh-bms-${project.artifactId}</name>
+                            <name>xh-admin-${project.artifactId}</name>
                             <env>
                                 <!-- jdk版本-->
                                 <BP_JVM_VERSION>17</BP_JVM_VERSION>
                             </env>
+                            <!-- 镜像打标签 -->
                             <tags>
-                                <tag>latest</tag>
-<!--                                <tag>${project.version}</tag>-->
+                                <!-- 示例： 镜像库地址/镜像名称:标签  -->
+<!--                                <tag>localhost:5000/${project.artifactId}:latest</tag>-->
                             </tags>
-
                             <!-- 如果要推送到镜像库，设为true -->
                             <!-- <publish>true</publish> -->
                         </image>
@@ -118,12 +115,12 @@
                                 <goal>repackage</goal>
                             </goals>
                         </execution>
-                        <execution>
-                            <id>build-image</id>
-                            <goals>
-                                <goal>build-image</goal>
-                            </goals>
-                        </execution>
+<!--                        <execution>-->
+<!--                            <id>build-image</id>-->
+<!--                            <goals>-->
+<!--                                <goal>build-image</goal>-->
+<!--                            </goals>-->
+<!--                        </execution>-->
                     </executions>
                 </plugin>
             </plugins>
