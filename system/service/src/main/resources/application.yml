@@ -1,5 +1,5 @@
 server:
-  port: 2000
+  port: ${PORT:9001}
 sys:
   auth:
     tokenHeaderName: auth-token
