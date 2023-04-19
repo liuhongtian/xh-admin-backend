@@ -1,6 +1,6 @@
-package com.xh.system.client.web;
+package com.xh.common.core.web;
 
-import com.xh.system.client.entity.SysUser;
+import com.xh.common.core.dto.SysUserDto;
 
 /**
  * 线程变量存储器
@@ -11,13 +11,13 @@ public class SysContextHolder {
     //系统的登录的token
     public static final ThreadLocal<String> AUTH_TOKEN = new ThreadLocal<>();
     //系统登录用户信息
-    public static final ThreadLocal<SysUser> SYS_USER = new ThreadLocal<>();
+    public static final ThreadLocal<SysUserDto> SYS_USER = new ThreadLocal<>();
 
     public static String getAuthToken() {
         return AUTH_TOKEN.get();
     }
 
-    public static SysUser getSysUser() {
+    public static SysUserDto getSysUser() {
         return SYS_USER.get();
     }
 }

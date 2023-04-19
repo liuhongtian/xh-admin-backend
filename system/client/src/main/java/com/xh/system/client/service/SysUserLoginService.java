@@ -1,6 +1,7 @@
 package com.xh.system.client.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xh.common.core.dto.SysUserDto;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.WebLogs;
@@ -9,10 +10,11 @@ import com.xh.common.core.web.RestResponse;
 import com.xh.system.client.dto.SysLoginUserInfoDto;
 import com.xh.system.client.entity.SysMenu;
 import com.xh.system.client.entity.SysUser;
-import com.xh.system.client.web.SysContextHolder;
+import com.xh.common.core.web.SysContextHolder;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -30,8 +32,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class SysUserLoginService extends BaseServiceImpl {
 
-    @Value("${sys.auth.tokenHeaderName}")
-    private String tokenHeaderName;
     @Value("${sys.auth.authTokenRedisPrefix}")
     private String authTokenRedisPrefix;
     @Resource
@@ -63,8 +63,11 @@ public class SysUserLoginService extends BaseServiceImpl {
             String menuSql = "select * from sys_menu where enabled = 1 order by `order` asc";
             List<SysMenu> menus = baseJdbcDao.findList(SysMenu.class, menuSql);
 
+            SysUserDto sysUserDto = new SysUserDto();
+            BeanUtils.copyProperties(sysUser, sysUserDto);
+
             loginUserInfo = new SysLoginUserInfoDto();
-            loginUserInfo.setUser(sysUser);
+            loginUserInfo.setUser(sysUserDto);
             loginUserInfo.setMenus(menus);
             loginUserInfo.setToken(authToken);
         }
@@ -77,10 +80,7 @@ public class SysUserLoginService extends BaseServiceImpl {
      * 管理端请求鉴权
      */
     public Boolean authentication(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String authToken = request.getHeader(tokenHeaderName);
-        SysContextHolder.AUTH_TOKEN.set(authToken);
-        //清空当前登录用户
-        SysContextHolder.SYS_USER.remove();
+        String authToken = SysContextHolder.getAuthToken();
         RestResponse<?> restResponse;
         //验证登录信息
         if (CommonUtil.isNotEmpty(authToken)) {
