@@ -4,18 +4,16 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.xh</groupId>
-        <artifactId>common</artifactId>
+        <artifactId>system</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>common-swagger</artifactId>
-    <description>swagger-api文档</description>
+    <artifactId>file-client</artifactId>
 
     <dependencies>
-        <!--     swagger        -->
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <groupId>com.xh</groupId>
+            <artifactId>common-core</artifactId>
         </dependency>
     </dependencies>
 </project>

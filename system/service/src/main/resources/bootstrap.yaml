@@ -1,0 +1,25 @@
+nacos-server-addr: ${SERVER_ADDR:localhost:8848}
+nacos-namespace: local-dev
+nacos-group: xh-admin
+
+server:
+  port: 6010
+
+spring:
+  application:
+    name: system
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${nacos-server-addr}
+        namespace: ${nacos-namespace}
+        group: ${nacos-group}
+      config:
+        server-addr: ${nacos-server-addr}
+        file-extension: yaml
+        namespace: ${nacos-namespace}
+        group: ${nacos-group}
+        shared-configs:
+          - data-id: common.${spring.cloud.nacos.config.file-extension}
+            group: ${nacos-group}
+            refresh: true

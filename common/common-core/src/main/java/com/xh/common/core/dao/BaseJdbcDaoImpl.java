@@ -95,17 +95,17 @@ public class BaseJdbcDaoImpl implements BaseJdbcDao {
     }
 
     @Override
-    public PageResult<Map> query(PageQuery pageQuery) {
+    public PageResult<Map> query(PageQuery<?> pageQuery) {
         return query(Map.class, pageQuery);
     }
 
     @Override
-    public <K> PageResult<K> query(Class<K> clazz, PageQuery pageQuery) {
+    public <K> PageResult<K> query(Class<K> clazz, PageQuery<?> pageQuery) {
         return query(clazz, pageQuery, primaryJdbcTemplate);
     }
 
     @Override
-    public <K> PageResult<K> query(Class<K> clazz, PageQuery pageQuery, JdbcTemplate jdbcTemplate) {
+    public <K> PageResult<K> query(Class<K> clazz, PageQuery<?> pageQuery, JdbcTemplate jdbcTemplate) {
         String sql = pageQuery.getBaseSql();
         PageResult<K> pageResult = new PageResult<>();
         if (pageQuery.getIsPage()) {

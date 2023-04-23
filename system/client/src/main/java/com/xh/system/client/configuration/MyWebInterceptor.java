@@ -30,7 +30,11 @@ public class MyWebInterceptor implements HandlerInterceptor {
                         "/**"
                 )
                 .excludePathPatterns(
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs",
                         "/api/system/login/login"
+
                 ).order(2);
     }
 

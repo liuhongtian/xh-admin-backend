@@ -1,7 +1,7 @@
 package com.xh.system.client.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xh.common.core.dto.SysUserDto;
+import com.xh.common.core.dto.SysUserDTO;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.WebLogs;
@@ -63,7 +63,7 @@ public class SysUserLoginService extends BaseServiceImpl {
             String menuSql = "select * from sys_menu where enabled = 1 order by `order` asc";
             List<SysMenu> menus = baseJdbcDao.findList(SysMenu.class, menuSql);
 
-            SysUserDto sysUserDto = new SysUserDto();
+            SysUserDTO sysUserDto = new SysUserDTO();
             BeanUtils.copyProperties(sysUser, sysUserDto);
 
             loginUserInfo = new SysLoginUserInfoDto();

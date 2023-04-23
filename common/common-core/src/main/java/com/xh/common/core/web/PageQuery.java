@@ -16,7 +16,7 @@ import java.util.*;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
-public class PageQuery {
+public class PageQuery<T> {
 
     /**
      * 是否分页
@@ -31,9 +31,9 @@ public class PageQuery {
      */
     private int pageSize = 20;
     /**
-     * 简单查询条件
+     * 可以携带自定义参数
      */
-    private Map<String, Object> param;
+    private T param;
     /**
      * 高级组合查询
      */

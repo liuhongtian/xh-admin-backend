@@ -1,6 +1,6 @@
 package com.xh.system.client.dto;
 
-import com.xh.common.core.dto.SysUserDto;
+import com.xh.common.core.dto.SysUserDTO;
 import com.xh.system.client.entity.SysMenu;
 import lombok.Data;
 
@@ -18,7 +18,7 @@ public class SysLoginUserInfoDto implements Serializable {
     //登录token
     private String token;
     //登录用户信息
-    private SysUserDto user;
+    private SysUserDTO user;
     //拥有的菜单
     private List<SysMenu> menus;
 }

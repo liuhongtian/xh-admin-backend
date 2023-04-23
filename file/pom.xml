@@ -2,20 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
     <parent>
         <groupId>com.xh</groupId>
-        <artifactId>common</artifactId>
+        <artifactId>xh-bms-backend</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>common-swagger</artifactId>
-    <description>swagger-api文档</description>
+    <artifactId>file</artifactId>
+    <description>文件管理模块</description>
 
-    <dependencies>
-        <!--     swagger        -->
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>client</module>
+        <module>service</module>
+    </modules>
 </project>

@@ -20,11 +20,18 @@
     <properties>
         <!--    基础版本    -->
         <xh-bms.version>0.0.1-SNAPSHOT</xh-bms.version>
+        <spring-cloud.version>2022.0.2</spring-cloud.version>
+        <!--   这个是预发布版本     -->
+        <spring-cloud-alibaba.version>2022.0.0.0-RC1</spring-cloud-alibaba.version>
+        <minio.version>8.5.2</minio.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.1.0</springdoc-openapi-starter-webmvc-ui.version>
+        <guava.version>31.1-jre</guava.version>
     </properties>
 
     <modules>
         <module>common</module>
         <module>system</module>
+        <module>file</module>
     </modules>
 
     <dependencies>
@@ -36,9 +43,41 @@
         </dependency>
     </dependencies>
 
+    <!--    定义依赖的默认版本    -->
     <dependencyManagement>
-        <!--    定义依赖的默认版本    -->
+        <!-- Spring-Cloud-Alibaba -->
         <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--     MinIo对象存储       -->
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
+            </dependency>
+            <!--     swagger        -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-openapi-starter-webmvc-ui.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
             <!-- 升级修复安全漏洞 -->
             <dependency>
                 <groupId>org.yaml</groupId>
@@ -70,12 +109,16 @@
                 <artifactId>system-client</artifactId>
                 <version>${xh-bms.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.xh</groupId>
+                <artifactId>file-client</artifactId>
+                <version>${xh-bms.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <distributionManagement>
         <!--    如需发布到仓库，这里配置选项    -->
-
     </distributionManagement>
 
     <build>
@@ -96,7 +139,7 @@
                             <!-- 镜像打标签 -->
                             <tags>
                                 <!-- 示例： 镜像库地址/镜像名称:标签  -->
-<!--                                <tag>localhost:5000/${project.artifactId}:latest</tag>-->
+                                <!--                                <tag>localhost:5000/${project.artifactId}:latest</tag>-->
                             </tags>
                             <!-- 如果要推送到镜像库，设为true -->
                             <!-- <publish>true</publish> -->
@@ -115,12 +158,12 @@
                                 <goal>repackage</goal>
                             </goals>
                         </execution>
-<!--                        <execution>-->
-<!--                            <id>build-image</id>-->
-<!--                            <goals>-->
-<!--                                <goal>build-image</goal>-->
-<!--                            </goals>-->
-<!--                        </execution>-->
+                        <!--                        <execution>-->
+                        <!--                            <id>build-image</id>-->
+                        <!--                            <goals>-->
+                        <!--                                <goal>build-image</goal>-->
+                        <!--                            </goals>-->
+                        <!--                        </execution>-->
                     </executions>
                 </plugin>
             </plugins>

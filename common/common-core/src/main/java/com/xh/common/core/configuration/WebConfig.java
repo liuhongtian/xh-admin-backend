@@ -11,10 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
@@ -25,7 +22,6 @@ import java.util.List;
  * sunxh 2023/2/26
  */
 @Configuration
-@EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {
 
     @Resource
@@ -36,7 +32,11 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**").allowedOrigins("*").maxAge(3600);
+        registry.addMapping("/api/**")
+                .allowedOriginPatterns("http://localhost:**")
+                .allowedMethods("POST", "PUT", "GET", "OPTIONS", "DELETE")
+//                .allowedHeaders("access_token", "authorization", "Content-type")
+                .maxAge(3600);
     }
 
     /**

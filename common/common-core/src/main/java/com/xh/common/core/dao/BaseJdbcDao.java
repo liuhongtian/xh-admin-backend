@@ -28,11 +28,11 @@ public interface BaseJdbcDao {
 
     <K> List<K> findList(Class<K> clazz, String sql, JdbcTemplate jdbcTemplate, Object... args);
 
-    PageResult<Map> query(PageQuery pageQuery);
+    PageResult<Map> query(PageQuery<?> pageQuery);
 
-    <K> PageResult<K> query(Class<K> clazz, PageQuery pageQuery);
+    <K> PageResult<K> query(Class<K> clazz, PageQuery<?> pageQuery);
 
-    <K> PageResult<K> query(Class<K> clazz, PageQuery pageQuery, JdbcTemplate jdbcTemplate);
+    <K> PageResult<K> query(Class<K> clazz, PageQuery<?> pageQuery, JdbcTemplate jdbcTemplate);
 
     void insert(BaseEntity entity);
 

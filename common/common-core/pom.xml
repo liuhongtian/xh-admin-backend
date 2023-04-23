@@ -11,9 +11,6 @@
     <artifactId>common-core</artifactId>
     <description>通用配置</description>
 
-    <properties>
-        <guava.version>31.1-jre</guava.version>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -26,7 +23,6 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

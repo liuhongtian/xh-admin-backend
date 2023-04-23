@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * @author sunxh 2023/3/1
  */
 @Data
-public class BaseDto<I> implements Serializable {
+public class BaseDTO<I> implements Serializable {
     @Schema(title = "主键ID")
     protected I id;
     @Schema(title = "创建时间")

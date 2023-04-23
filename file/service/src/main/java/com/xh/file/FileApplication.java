@@ -1,4 +1,4 @@
-package com.xh.system;
+package com.xh.file;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,8 +8,8 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 @SpringBootApplication
 @EnableDiscoveryClient
 @RefreshScope
-public class SystemApplication {
+public class FileApplication {
     public static void main(String[] args) {
-        SpringApplication.run(SystemApplication.class, args);
+        SpringApplication.run(FileApplication.class, args);
     }
 }

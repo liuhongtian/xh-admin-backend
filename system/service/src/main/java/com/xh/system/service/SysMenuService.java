@@ -24,7 +24,7 @@ public class SysMenuService extends BaseServiceImpl {
      * 系统菜单查询
      */
     @Transactional(readOnly = true)
-    public PageResult<SysMenu> query(PageQuery pageQuery) {
+    public PageResult<SysMenu> query(PageQuery<Map<String, Object>> pageQuery) {
         WebLogs.info("菜单列表查询---");
         Map<String, Object> param = pageQuery.getParam();
         String sql = "select * from sys_menu where 1=1";

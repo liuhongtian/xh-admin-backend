@@ -8,7 +8,7 @@ import lombok.Data;
  * @author sunxh 2023/3/1
  */
 @Data
-public class SysUserDto extends BaseDto<Integer> {
+public class SysUserDTO extends BaseDTO<Integer> {
     private String code;
     private String name;
     private String password;

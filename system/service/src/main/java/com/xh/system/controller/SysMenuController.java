@@ -23,7 +23,7 @@ public class SysMenuController {
 
     @Operation(description = "菜单列表查询")
     @PostMapping("/query")
-    public RestResponse<PageResult<SysMenu>> query(@RequestBody PageQuery pageQuery) {
+    public RestResponse<PageResult<SysMenu>> query(@RequestBody PageQuery<Map<String, Object>> pageQuery) {
         PageResult<SysMenu> data = sysMenuService.query(pageQuery);
         return RestResponse.success(data);
     }

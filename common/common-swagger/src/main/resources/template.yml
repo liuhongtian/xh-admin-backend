@@ -1,0 +1,12 @@
+#swagger配置文件模板
+
+# 官方文档地址 https://springdoc.org/v2/
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    #    swagger首页地址
+    path: /swagger-ui.html
+
