@@ -5,6 +5,7 @@ import com.xh.common.core.web.SysContextHolder;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -18,6 +19,7 @@ import java.util.Enumeration;
  * @author sunxh 2023/2/26
  */
 @Configuration
+@Slf4j
 public class MyLoggerInterceptor extends BaseServiceImpl implements HandlerInterceptor {
     @Value("${sys.auth.tokenHeaderName}")
     private String tokenHeaderName;
@@ -39,7 +41,8 @@ public class MyLoggerInterceptor extends BaseServiceImpl implements HandlerInter
         //清空当前登录用户
         SysContextHolder.SYS_USER.remove();
         Enumeration<String> headerNames = request.getHeaderNames();
-        System.out.println(headerNames);
+        System.out.println("请求URL" + request.getRequestURI());
+        log.info("请求URL" + request.getRequestURI());
         return true;
     }
 }
