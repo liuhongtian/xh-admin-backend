@@ -1,10 +1,11 @@
-nacos-server-addr: ${SERVER_ADDR:localhost:8848}
-nacos-namespace: local-dev
-nacos-group: xh-admin
-
+nacos-server-addr: ${NACOS_SERVER_ADDR:110.40.220.98:8848}
+nacos-namespace: ${NACOS_NAMESPACE:local-dev}
+nacos-group: ${NACOS_GROUP:xh-admin}
+nacos-username: ${NACOS_USERNAME:localdev}
+nacos-password: ${NACOS_PASSWROD:localdev}
 
 server:
-  port: 6002
+  port: 6003
 
 spring:
   application:
@@ -15,8 +16,12 @@ spring:
         server-addr: ${nacos-server-addr}
         namespace: ${nacos-namespace}
         group: ${nacos-group}
+        username: ${nacos-username}
+        password: ${nacos-password}
       config:
         server-addr: ${nacos-server-addr}
+        username: ${nacos-username}
+        password: ${nacos-password}
         file-extension: yaml
         namespace: ${nacos-namespace}
         group: ${nacos-group}

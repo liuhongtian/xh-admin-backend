@@ -1,15 +1,21 @@
 package com.xh.file.service;
 
 import com.xh.common.core.service.BaseServiceImpl;
-import io.minio.*;
-import io.minio.errors.MinioException;
+import com.xh.common.core.utils.CommonUtil;
+import com.xh.file.client.entity.SysFile;
+import io.minio.BucketExistsArgs;
+import io.minio.MakeBucketArgs;
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -19,6 +25,7 @@ import java.util.UUID;
  * sunxh 2023/4/22
  */
 @Service
+@Slf4j
 public class FileOperationService extends BaseServiceImpl {
 
     @Value("${minio.endpoint}")
@@ -30,7 +37,11 @@ public class FileOperationService extends BaseServiceImpl {
     @Value("${minio.bucket}")
     private String bucket;
 
-    public void uploadFile(MultipartFile multipartFile) {
+    /**
+     * 上传单个文件
+     */
+    @Transactional
+    public SysFile uploadFile(MultipartFile multipartFile) {
         try {
             // Create a minioClient with the MinIO server playground, its access key and secret key.
             MinioClient minioClient =
@@ -45,28 +56,40 @@ public class FileOperationService extends BaseServiceImpl {
             }
             String filename = multipartFile.getOriginalFilename();
             DateTimeFormatter yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMdd");
-
             multipartFile.getOriginalFilename();
             String uuid = UUID.randomUUID().toString();
             String date = yyyyMMdd.format(LocalDateTime.now());
-            String objectName = "%s/%s%s".formatted(date,uuid, filename);
+            //文件后缀名
+            String object = "%s/%s".formatted(date, uuid);
+            String suffix = CommonUtil.getFileSuffix(filename);
+            if(CommonUtil.isNotEmpty(suffix)) object += "." + suffix;
+            SysFile sysFile = new SysFile();
+            sysFile.setObject(object);
+            sysFile.setSize(multipartFile.getSize());
+            sysFile.setSuffix(suffix);
+            sysFile.setContentType(multipartFile.getContentType());
+            sysFile.setName(filename);
+            try {
+                // 图片对象
+                BufferedImage image = ImageIO.read(multipartFile.getInputStream());
+                sysFile.setImgWidth(image.getWidth());
+                sysFile.setImgHeight(image.getHeight());
+                sysFile.setImgRatio(image.getWidth() / new BigDecimal(image.getHeight()).doubleValue());
+            } catch (Exception e) {
+                log.info("非图片文件");
+            }
+            baseJdbcDao.insert(sysFile);
 
             minioClient.putObject(
-                PutObjectArgs.builder()
-                        .bucket(bucket)
-                        .object(objectName)
-                        .contentType(multipartFile.getContentType())
-                        .stream(multipartFile.getInputStream(), multipartFile.getSize(), -1)
-                        .build()
+                    PutObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(object)
+                            .contentType(multipartFile.getContentType())
+                            .stream(multipartFile.getInputStream(), multipartFile.getSize(), -1)
+                            .build()
             );
-        } catch (MinioException e) {
-            System.out.println("Error occurred: " + e);
-            System.out.println("HTTP trace: " + e.httpTrace());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
+            return sysFile;
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

@@ -1,19 +1,20 @@
 package com.xh.file.controller;
 
 import com.xh.common.core.web.RestResponse;
+import com.xh.file.client.entity.SysFile;
 import com.xh.file.service.FileOperationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.data.repository.query.Param;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "文件操作控制器")
 @RestController
 @RequestMapping("/api/file/operation")
-@Log4j2
+@Slf4j
 public class FileOperationController {
 
     @Resource
@@ -21,16 +22,15 @@ public class FileOperationController {
 
 
     @Operation(description = "菜单列表查询")
-    @PutMapping("/upload")
-    public RestResponse<?> uploadFile(@RequestParam("file") MultipartFile file) {
-        fileOperationService.uploadFile(file);
-        return RestResponse.success();
+    @PostMapping("/upload")
+    public RestResponse<SysFile> uploadFile(@Schema(type = "blob") @RequestParam("file") MultipartFile file) {
+        SysFile sysFile = fileOperationService.uploadFile(file);
+        return RestResponse.success(sysFile);
     }
 
     @Operation(description = "菜单列表查询")
     @PostMapping("/upload2")
     public RestResponse<?> query(@RequestBody String name) {
-        log.info(name);
         return RestResponse.success();
     }
 //

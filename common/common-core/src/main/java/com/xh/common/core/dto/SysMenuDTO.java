@@ -1,17 +1,16 @@
-package com.xh.system.client.entity;
+package com.xh.common.core.dto;
 
-import com.xh.common.core.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-
-@Table
+/**
+ * 存放系统登录的用户信息DTO
+ *
+ * @author sunxh 2023/3/1
+ */
+@Schema(description = "承载当前登录用户拥有的菜单权限")
 @Data
-@Schema(title = "系统用户")
-@EqualsAndHashCode(callSuper = true)
-public class SysMenu extends BaseEntity<Integer> {
+public class SysMenuDTO extends BaseDTO<Integer> {
     @Schema(title = "上级id")
     private Integer parentId;
     @Schema(title = "菜单标题")

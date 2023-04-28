@@ -18,17 +18,17 @@ public class SysFile extends BaseEntity<Integer> {
     @Schema(title = "文件名")
     private String name;
     @Schema(title = "文件类型")
-    private String content_type;
+    private String contentType;
     @Schema(title = "文件后缀扩展名")
     private String suffix;
     @Schema(title = "文件大小")
     private Long size;
     @Schema(title = "图片宽度")
-    private Integer img_width;
+    private Integer imgWidth;
     @Schema(title = "图片高度")
-    private Integer img_height;
+    private Integer imgHeight;
     @Schema(title = "图片宽高比")
-    private Double img_ratio;
+    private Double imgRatio;
     @Schema(title = "文件状态", allowableValues = {"1", "2", "3", "4"}, description = "1：正常，2:：禁用，3：标记删除，4：已删除")
     private Integer status;
 }

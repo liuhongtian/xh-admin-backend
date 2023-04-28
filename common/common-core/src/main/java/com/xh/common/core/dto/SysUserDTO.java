@@ -7,6 +7,7 @@ import lombok.Data;
  *
  * @author sunxh 2023/3/1
  */
+
 @Data
 public class SysUserDTO extends BaseDTO<Integer> {
     private String code;

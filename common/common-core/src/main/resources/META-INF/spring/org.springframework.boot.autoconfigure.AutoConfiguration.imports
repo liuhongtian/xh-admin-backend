@@ -1,7 +1,7 @@
 com.xh.common.core.configuration.WebConfig
 com.xh.common.core.configuration.MyControllerAdvice
 com.xh.common.core.configuration.MyLoggerInterceptor
+com.xh.common.core.configuration.MyWebInterceptor
+com.xh.common.core.service.SysUserAuthenticationService
 com.xh.common.core.dao.BaseJdbcDaoImpl
 com.xh.common.core.service.BaseServiceImpl
-com.xh.common.core.configuration.MyControllerAdvice
-com.xh.common.core.configuration.MyControllerAdvice

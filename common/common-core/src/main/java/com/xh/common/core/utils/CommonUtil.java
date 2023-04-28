@@ -3,7 +3,10 @@ package com.xh.common.core.utils;
 import com.google.common.base.CaseFormat;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * 通用工具类
@@ -81,5 +84,15 @@ public class CommonUtil {
             return fieldMap.values();
         }
         return null;
+    }
+
+    /**
+     * 获取文件的后缀名
+     */
+    public static String getFileSuffix(String filename) {
+        if (filename == null) return null;
+        int index = filename.lastIndexOf(".");
+        if (index == -1) return null;
+        return filename.substring(index + 1);
     }
 }

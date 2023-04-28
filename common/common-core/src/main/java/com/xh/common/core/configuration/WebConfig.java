@@ -11,7 +11,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
@@ -21,11 +24,14 @@ import java.util.List;
  * spring mvc配置类
  * sunxh 2023/2/26
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
+@EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {
 
     @Resource
     private MyLoggerInterceptor myLoggerInterceptor;
+    @Resource
+    private MyWebInterceptor myWebInterceptor;
 
     /**
      * 资源跨域设置
@@ -46,6 +52,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(@Nonnull InterceptorRegistry registry) {
         WebMvcConfigurer.super.addInterceptors(registry);
         myLoggerInterceptor.addInterceptor(registry);
+        myWebInterceptor.addInterceptor(registry);
     }
 
     /**
@@ -65,6 +72,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .deserializers(new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)))
                 .deserializers(new LocalDateDeserializer(DateTimeFormatter.ofPattern(DATE_FORMAT)))
                 .modulesToInstall(new ParameterNamesModule());
-        converters.add(new MappingJackson2HttpMessageConverter(builder.build()));
+        // 在头部添加，优先级别最高
+        converters.add(0, new MappingJackson2HttpMessageConverter(builder.build()));
     }
 }

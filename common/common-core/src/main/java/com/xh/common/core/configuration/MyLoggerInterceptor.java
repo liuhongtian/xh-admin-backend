@@ -29,7 +29,7 @@ public class MyLoggerInterceptor extends BaseServiceImpl implements HandlerInter
         registry.addInterceptor(this)
                 .addPathPatterns(
                         "/**"
-                ).order(0);
+                ).order(1);
     }
 
     @Override

@@ -1,12 +1,15 @@
 package com.xh.common.core.web;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
 
+@Tag(name = "RestResponse")
 @Data
 public class RestResponse<T> implements Serializable {
+
 
     private Integer httpCode; //http状态码
     private String status; //响应消息状态：success, error, warning, info

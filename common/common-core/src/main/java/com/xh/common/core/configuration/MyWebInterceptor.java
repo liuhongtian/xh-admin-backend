@@ -1,6 +1,6 @@
-package com.xh.system.client.configuration;
+package com.xh.common.core.configuration;
 
-import com.xh.system.client.service.SysUserLoginService;
+import com.xh.common.core.service.SysUserAuthenticationService;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +19,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 public class MyWebInterceptor implements HandlerInterceptor {
 
     @Resource
-    private SysUserLoginService sysUserLoginService;
+    private SysUserAuthenticationService sysUserAuthenticationService;
 
     /**
      * 添加拦截器，同时配置拦截规则
@@ -33,8 +33,7 @@ public class MyWebInterceptor implements HandlerInterceptor {
                         "/swagger-ui.html",
                         "/swagger-ui/**",
                         "/v3/api-docs",
-                        "/api/system/login/login"
-
+                        "/api/system/user/login"
                 ).order(2);
     }
 
@@ -44,6 +43,6 @@ public class MyWebInterceptor implements HandlerInterceptor {
         if ("/error".equals(request.getRequestURI()) || "OPTIONS".equals(request.getMethod())) {
             return true;
         }
-        return sysUserLoginService.authentication(request, response, handler);
+        return sysUserAuthenticationService.authentication(request, response, handler);
     }
 }
