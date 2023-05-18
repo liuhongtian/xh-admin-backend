@@ -31,4 +31,6 @@ public class SysFile extends BaseEntity<Integer> {
     private Double imgRatio;
     @Schema(title = "文件状态", allowableValues = {"1", "2", "3", "4"}, description = "1：正常，2:：禁用，3：标记删除，4：已删除")
     private Integer status;
+    @Schema(title = "文件摘要sha1")
+    private String sha1;
 }

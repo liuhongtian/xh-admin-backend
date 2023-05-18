@@ -1,6 +1,7 @@
 package com.xh.common.core.configuration;
 
 import com.xh.common.core.service.BaseServiceImpl;
+import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.web.SysContextHolder;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,12 +38,12 @@ public class MyLoggerInterceptor extends BaseServiceImpl implements HandlerInter
     @Override
     public boolean preHandle(HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull Object handler) {
         String authToken = request.getHeader(tokenHeaderName);
+        if(CommonUtil.isEmpty(authToken)) authToken = request.getParameter(tokenHeaderName);
         SysContextHolder.AUTH_TOKEN.set(authToken);
         //清空当前登录用户
         SysContextHolder.SYS_USER.remove();
         Enumeration<String> headerNames = request.getHeaderNames();
-        System.out.println("请求URL" + request.getRequestURI());
-        log.info("请求URL" + request.getRequestURI());
+        log.info("{},请求URL:{}", request.getMethod(), request.getRequestURI());
         return true;
     }
 }

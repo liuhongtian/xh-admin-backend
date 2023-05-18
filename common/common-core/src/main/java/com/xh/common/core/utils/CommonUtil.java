@@ -2,7 +2,12 @@ package com.xh.common.core.utils;
 
 import com.google.common.base.CaseFormat;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -94,5 +99,37 @@ public class CommonUtil {
         int index = filename.lastIndexOf(".");
         if (index == -1) return null;
         return filename.substring(index + 1);
+    }
+
+    /**
+     * 获取文件摘要sha1
+     */
+    public static String getFileSha1(InputStream inputStream) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            byte[] buffer = new byte[1024 * 1024 * 10];
+            int len = 0;
+            while ((len = inputStream.read(buffer)) > 0) {
+                digest.update(buffer, 0, len);
+            }
+            String sha1 = new BigInteger(1, digest.digest()).toString(16);
+            int length = 40 - sha1.length();
+            if (length > 0) {
+                for (int i = 0; i < length; i++) {
+                    sha1 = "0" + sha1;
+                }
+            }
+            return sha1;
+        } catch (IOException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

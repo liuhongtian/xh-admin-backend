@@ -9,6 +9,7 @@ import com.xh.common.core.web.SysContextHolder;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit;
  * 系统用户鉴权service
  * sunxh 2023/2/26
  */
+@Slf4j
 @Service
 public class SysUserAuthenticationService extends BaseServiceImpl {
 
@@ -50,6 +52,7 @@ public class SysUserAuthenticationService extends BaseServiceImpl {
         }
 
         restResponse.setHttpCode(HttpStatus.FORBIDDEN.value());
+        log.error(restResponse.getMessage());
         this.writeMessage(response, restResponse);
         return false;
     }
