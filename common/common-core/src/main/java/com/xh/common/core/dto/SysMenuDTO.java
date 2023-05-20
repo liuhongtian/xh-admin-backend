@@ -31,8 +31,6 @@ public class SysMenuDTO extends BaseDTO<Integer> {
     private String outerUrl;
     @Schema(title = "菜单图标")
     private String icon;
-    @Schema(title = "图标类型", allowableValues = {"el", "ali", "svg",})
-    private String iconType;
     @Schema(title = "排序号")
     private Integer order;
     @Schema(title = "是否缓存")

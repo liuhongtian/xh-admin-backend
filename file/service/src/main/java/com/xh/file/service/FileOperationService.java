@@ -133,10 +133,14 @@ public class FileOperationService extends BaseServiceImpl {
             if (CommonUtil.isNotEmpty(downloadFileDTO.getFileName())) {
                 String fileName = URLEncoder.encode(downloadFileDTO.getFileName(), "UTF-8");
                 //设置响应头中文件的下载方式为附件方式，以及设置文件名
-                response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+                response.setHeader("Content-Disposition",
+                        "%s; filename=%s".formatted(downloadFileDTO.getDisposition(), fileName));
+            }
+            if (CommonUtil.isNotEmpty(downloadFileDTO.getContentType())) {
+                //设置Content-Type，这样可以使用浏览器原生的文件预览功能
+                response.setContentType(downloadFileDTO.getContentType());
             }
             OutputStream outputStream = response.getOutputStream();
-
             //如果图片预览缩略图
             if (downloadFileDTO.getIsScale()) {
                 try {
@@ -151,17 +155,17 @@ public class FileOperationService extends BaseServiceImpl {
                         int newHeight = (int) (image.getHeight() * scale);
                         BufferedImage newBI = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
                         newBI.getGraphics().drawImage(image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH), 0, 0, null);
-                        ImageIO.write(newBI, "png", outputStream);
+                        ImageIO.write(newBI, "webp", outputStream);
                         return;
                     } else {
-                        ImageIO.write(image, "png", outputStream);
+                        ImageIO.write(image, "webp", outputStream);
                     }
                 } catch (Exception e) {
                     log.error("图片缩放失败，{}", e.getMessage());
                 }
             }
             inputStream.transferTo(outputStream);
-            outputStream.close();
+            outputStream.flush();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
