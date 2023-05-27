@@ -1,10 +1,12 @@
 package com.xh.common.core.dao;
 
+import com.xh.common.core.dto.SysUserDTO;
 import com.xh.common.core.entity.BaseEntity;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
+import com.xh.common.core.web.SysContextHolder;
 import jakarta.annotation.Resource;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
@@ -206,14 +208,22 @@ public class BaseJdbcDaoImpl implements BaseJdbcDao {
             }
         }
         String sql = null;
+        SysUserDTO sysUserDTO = SysContextHolder.getSysUser();
         if ("insert".equals(flag)) {
             if (entity.getCreateTime() == null) entity.setCreateTime(LocalDateTime.now());
+            if (entity.getDeleted() == null) entity.setDeleted(false);
+            if (sysUserDTO != null) {
+                if (entity.getDeleted() == null) entity.setCreateBy(sysUserDTO.getId());
+            }
             String formatStr = "INSERT INTO `%s` (%s) VALUES (%s)";
             String columnStr = columnMap.keySet().stream().collect(Collectors.joining("`,`", "`", "`"));
             String valueStr = columnMap.values().stream().map(i -> ":" + i).collect(Collectors.joining(","));
             sql = String.format(formatStr, tableName, columnStr, valueStr);
         } else if ("update".equals(flag)) {
             entity.setUpdateTime(LocalDateTime.now());
+            if (sysUserDTO != null) {
+                if (entity.getUpdateBy() == null) entity.setUpdateBy(sysUserDTO.getId());
+            }
             String formatStr = "UPDATE `%s` SET %s WHERE %s";
             String columnMapStr = columnMap.entrySet().stream().map(i -> String.format("`%s`=:%s", i.getKey(), i.getValue())).collect(Collectors.joining(","));
             String idMapStr = idMap.entrySet().stream().map(i -> String.format("`%s`=:%s", i.getKey(), i.getValue())).collect(Collectors.joining(" and "));

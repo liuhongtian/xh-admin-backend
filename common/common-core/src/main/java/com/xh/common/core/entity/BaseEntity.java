@@ -23,4 +23,6 @@ public class BaseEntity<I extends Serializable> implements Serializable {
     private Integer createBy;
     @Schema(title = "修改人")
     private Integer updateBy;
+    @Schema(title = "是否已删除")
+    private Boolean deleted;
 }

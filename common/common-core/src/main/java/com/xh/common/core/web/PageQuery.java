@@ -37,7 +37,7 @@ public class PageQuery<T> {
     /**
      * 高级组合查询
      */
-    private List<FilterColumn> filters;
+    private List<FilterColumn> filters = new ArrayList<>();
 
     /**
      * 查询基础sql
@@ -49,13 +49,13 @@ public class PageQuery<T> {
     private LinkedList<Object> args = new LinkedList<>();
 
     //尾部添加参数
-    public void addArg(Object ...arg) {
+    public void addArg(Object... arg) {
         this.args.addAll(Arrays.asList(arg));
     }
 
     //头部添加参数
-    public void addFirst(Object ...arg) {
-        for (int i = arg.length -1 ; i >= 0; i++) {
+    public void addFirst(Object... arg) {
+        for (int i = arg.length - 1; i >= 0; i++) {
             this.args.addFirst(arg[i]);
         }
     }

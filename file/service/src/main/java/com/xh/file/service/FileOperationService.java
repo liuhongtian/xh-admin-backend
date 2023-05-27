@@ -165,7 +165,7 @@ public class FileOperationService extends BaseServiceImpl {
                 }
             }
             inputStream.transferTo(outputStream);
-            outputStream.flush();
+            outputStream.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -215,6 +215,7 @@ public class FileOperationService extends BaseServiceImpl {
     /**
      * id获取文件详情
      */
+    @Transactional(readOnly = true)
     public SysFile getById(Serializable id) {
         return baseJdbcDao.findById(SysFile.class, id);
     }

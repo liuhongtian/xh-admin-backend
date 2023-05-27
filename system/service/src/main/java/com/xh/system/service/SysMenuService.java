@@ -69,6 +69,7 @@ public class SysMenuService extends BaseServiceImpl {
     /**
      * id获取菜单详情
      */
+    @Transactional(readOnly = true)
     public SysMenu getById(Serializable id) {
         return baseJdbcDao.findById(SysMenu.class, id);
     }

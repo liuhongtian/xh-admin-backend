@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 
 @Table
 @Data
-@Schema(title = "系统用户")
+@Schema(title = "系统菜单")
 @EqualsAndHashCode(callSuper = true)
 public class SysMenu extends BaseEntity<Integer> {
     @Schema(title = "上级id")

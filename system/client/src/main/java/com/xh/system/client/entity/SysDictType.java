@@ -7,18 +7,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 
-@Schema(title = "系统用户")
 @Table
 @Data
+@Schema(title = "数据字典类型")
 @EqualsAndHashCode(callSuper = true)
-public class SysUser extends BaseEntity<Integer> {
-
-    @Schema(title = "用户代码")
-    private String code;
-    @Schema(title = "用户名")
+public class SysDictType extends BaseEntity<Integer> {
+    @Schema(title = "字典类型名称")
     private String name;
-    @Schema(title = "密码")
-    private String password;
-    private String avatar;
-    private Boolean enabled;
+    @Schema(title = "是否可修改")
+    private Boolean modifiable;
 }

@@ -29,7 +29,7 @@ public class SysMenuController {
     }
 
     @Operation(description = "切换菜单字段值")
-    @PostMapping("/switch-menu-prop")
+    @PostMapping("/switch_menu_prop")
     public RestResponse<PageResult<SysMenu>> switchMenuProp(@RequestBody Map<String, Object> param) {
         sysMenuService.switchMenuProp(param);
         return RestResponse.success();
