@@ -1,9 +1,9 @@
 package com.xh.system.controller;
 
 import com.xh.common.core.web.PageQuery;
-import com.xh.system.client.entity.SysMenu;
 import com.xh.common.core.web.PageResult;
 import com.xh.common.core.web.RestResponse;
+import com.xh.system.client.entity.SysMenu;
 import com.xh.system.service.SysMenuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,7 +29,7 @@ public class SysMenuController {
     }
 
     @Operation(description = "切换菜单字段值")
-    @PostMapping("/switch_menu_prop")
+    @PostMapping("/switch_prop")
     public RestResponse<PageResult<SysMenu>> switchMenuProp(@RequestBody Map<String, Object> param) {
         sysMenuService.switchMenuProp(param);
         return RestResponse.success();
@@ -45,5 +45,13 @@ public class SysMenuController {
     @GetMapping("/get/{id}")
     public RestResponse<SysMenu> getById(@PathVariable Serializable id) {
         return RestResponse.success(sysMenuService.getById(id));
+    }
+
+
+    @Operation(description = "菜单批量删除")
+    @DeleteMapping("/del/{ids}")
+    public RestResponse<?> del(@PathVariable String ids) {
+        sysMenuService.del(ids);
+        return RestResponse.success();
     }
 }

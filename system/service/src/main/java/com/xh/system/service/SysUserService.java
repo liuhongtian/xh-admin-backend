@@ -5,14 +5,15 @@ import com.xh.common.core.dto.SysMenuDTO;
 import com.xh.common.core.dto.SysUserDTO;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
-import com.xh.common.core.web.MyException;
-import com.xh.common.core.web.RestResponse;
-import com.xh.common.core.web.SysContextHolder;
+import com.xh.common.core.utils.WebLogs;
+import com.xh.common.core.web.*;
 import com.xh.system.client.entity.SysUser;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -82,5 +83,76 @@ public class SysUserService extends BaseServiceImpl {
 
     public void deleteLoginInfoByAuthToken(String authToken) {
         redisTemplate.delete(authTokenRedisPrefix + authToken);
+    }
+
+    /**
+     * 系统用户查询
+     */
+    @Transactional(readOnly = true)
+    public PageResult<SysUser> query(PageQuery<Map<String, Object>> pageQuery) {
+        WebLogs.info("用户列表查询---");
+        Map<String, Object> param = pageQuery.getParam();
+        String sql = "select * from sys_user where deleted = 0 ";
+        if (CommonUtil.isNotEmpty(param.get("code"))) {
+            sql += " and code like '%' ? '%'";
+            pageQuery.addArg(param.get("code"));
+        }
+        if (CommonUtil.isNotEmpty(param.get("name"))) {
+            sql += " and name like '%' ? '%'";
+            pageQuery.addArg(param.get("name"));
+        }
+        if (CommonUtil.isNotEmpty(param.get("enabled"))) {
+            sql += " and enabled = ?";
+            pageQuery.addArg(param.get("enabled"));
+        }
+        pageQuery.setBaseSql(sql);
+        return baseJdbcDao.query(SysUser.class, pageQuery);
+    }
+
+    /**
+     * 切换用户字段值
+     */
+    @Transactional
+    public void switchMenuProp(Map<String, Object> param) {
+        WebLogs.info("切换用户字段值---", param);
+        Object id = param.get("id");
+        Object prop = param.get("prop");
+        Object value = param.get("value");
+        SysUser menu = baseJdbcDao.findById(SysUser.class, (Serializable) id);
+        if ("enabled".equals(prop)) menu.setEnabled((Boolean) value);
+        else throw new MyException("参数异常，检查后重试！");
+        baseJdbcDao.update(menu);
+    }
+
+    /**
+     * 用户保存
+     */
+    @Transactional
+    public SysUser save(SysUser sysUser) {
+        WebLogs.getLogger().info("用户保存---");
+        if (sysUser.getId() == null) baseJdbcDao.insert(sysUser);
+        else baseJdbcDao.update(sysUser);
+        return sysUser;
+    }
+
+    /**
+     * id获取用户详情
+     */
+    @Transactional(readOnly = true)
+    public SysUser getById(Serializable id) {
+        return baseJdbcDao.findById(SysUser.class, id);
+    }
+
+    /**
+     * ids批量删除用户
+     */
+    @Transactional
+    public void del(String ids) {
+        String sql = "select * from sys_user where id in (%s)".formatted(ids);
+        List<SysUser> list = baseJdbcDao.findList(SysUser.class, sql);
+        for (SysUser sysUser : list) {
+            sysUser.setDeleted(true);//已删除
+            baseJdbcDao.update(sysUser);
+        }
     }
 }
