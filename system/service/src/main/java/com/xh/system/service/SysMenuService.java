@@ -28,6 +28,7 @@ public class SysMenuService extends BaseServiceImpl {
     public PageResult<SysMenu> query(PageQuery<Map<String, Object>> pageQuery) {
         WebLogs.info("菜单列表查询---");
         Map<String, Object> param = pageQuery.getParam();
+        String flag = CommonUtil.getString(param.get("flag"));
         String sql = "select * from sys_menu where deleted = 0 ";
         if (CommonUtil.isNotEmpty(param.get("title"))) {
             sql += " and title like '%' ? '%'";
@@ -36,6 +37,9 @@ public class SysMenuService extends BaseServiceImpl {
         if (CommonUtil.isNotEmpty(param.get("enabled"))) {
             sql += " and enabled = ?";
             pageQuery.addArg(param.get("enabled"));
+        }
+        if (flag.equals("selectParentMenu")) {
+            sql += " and type in ('dir', 'menu')";
         }
         sql += " order by `order` asc";
         pageQuery.setBaseSql(sql);

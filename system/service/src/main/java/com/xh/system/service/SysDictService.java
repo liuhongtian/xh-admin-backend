@@ -101,9 +101,9 @@ public class SysDictService extends BaseServiceImpl {
         WebLogs.getLogger().info("数据字典保存---");
         String sql = """
                 select count(1) from sys_dict_detail where deleted = 0
-                and sys_dict_type_id = '%s' and value <> '%s'
+                and sys_dict_type_id = '%s' and value = '%s'
                 """.formatted(sysDictDetail.getSysDictTypeId(), sysDictDetail.getValue());
-        if(sysDictDetail.getId() == null) {
+        if(sysDictDetail.getId() != null) {
             sql += " and id <> %s ".formatted(sysDictDetail.getId());
         }
         Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class);
