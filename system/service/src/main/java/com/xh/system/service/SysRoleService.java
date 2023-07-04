@@ -5,29 +5,35 @@ import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
-import com.xh.system.client.entity.SysOrg;
+import com.xh.system.client.entity.SysMenu;
+import com.xh.system.client.entity.SysRole;
+import com.xh.system.client.entity.SysRoleMenu;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 系统机构service
+ * 系统角色service
  * sunxh 2023/6/3
  */
 @Service
+@Slf4j
 public class SysRoleService extends BaseServiceImpl {
 
     /**
-     * 系统机构查询
+     * 系统角色查询
      */
     @Transactional(readOnly = true)
-    public PageResult<SysOrg> query(PageQuery<Map<String, Object>> pageQuery) {
-        WebLogs.info("机构列表查询---");
+    public PageResult<SysRole> query(PageQuery<Map<String, Object>> pageQuery) {
+        WebLogs.info("角色列表查询---");
         Map<String, Object> param = pageQuery.getParam();
-        String sql = "select * from sys_org where deleted = 0 ";
+        String sql = "select * from sys_role where deleted = 0 ";
         if (CommonUtil.isNotEmpty(param.get("name"))) {
             sql += " and name like '%' ? '%'";
             pageQuery.addArg(param.get("name"));
@@ -36,38 +42,88 @@ public class SysRoleService extends BaseServiceImpl {
             sql += " and enabled = ?";
             pageQuery.addArg(param.get("enabled"));
         }
-        sql += " order by `order` asc";
         pageQuery.setBaseSql(sql);
-        return baseJdbcDao.query(SysOrg.class, pageQuery);
+        return baseJdbcDao.query(SysRole.class, pageQuery);
     }
 
 
     @Transactional
-    public SysOrg save(SysOrg sysOrg) {
-        WebLogs.getLogger().info("机构保存---");
-        if (sysOrg.getId() == null) baseJdbcDao.insert(sysOrg);
-        else baseJdbcDao.update(sysOrg);
-        return sysOrg;
+    public SysRole save(SysRole sysRole) {
+        WebLogs.getLogger().info("角色保存---");
+        if (sysRole.getId() == null) {
+            baseJdbcDao.insert(sysRole);
+        } else {
+            //删除之前的权限
+            String sql = "delete from sys_role_menu where sys_role_id = ?";
+            primaryJdbcTemplate.update(sql, sysRole.getId());
+            baseJdbcDao.update(sysRole);
+        }
+        List<SysRoleMenu> roleMenus = sysRole.getRoleMenus();
+        for (SysRoleMenu roleMenu : roleMenus) {
+            roleMenu.setSysRoleId(sysRole.getId());
+            baseJdbcDao.insert(roleMenu);
+        }
+        //需要删除子级角色多出的权限（mysql8.0递归查询并删除）
+        String sql2 = """
+                WITH recursive tb as (
+                	SELECT * from sys_role where parent_id = ?
+                	UNION ALL
+                	SELECT b.* from tb inner join sys_role b on b.parent_id = tb.id
+                )
+                DELETE FROM sys_role_menu
+                WHERE sys_role_id IN ( SELECT id FROM tb )
+                    AND sys_menu_id NOT IN (
+                     select * from (select sys_menu_id from sys_role_menu where sys_role_id = ?) temp
+                    )
+                """;
+        primaryJdbcTemplate.update(sql2, sysRole.getId(), sysRole.getId());
+        return sysRole;
     }
 
     /**
-     * id获取机构详情
+     * id获取角色详情
      */
     @Transactional(readOnly = true)
-    public SysOrg getById(Serializable id) {
-        return baseJdbcDao.findById(SysOrg.class, id);
+    public SysRole getById(Serializable id) {
+        SysRole role = baseJdbcDao.findById(SysRole.class, id);
+        if(role.getParentId() != null) {
+            SysRole parentRole = baseJdbcDao.findById(SysRole.class, role.getParentId());
+            role.setParentName(parentRole.getName());
+        }
+        String sql = "select * from sys_role_menu where sys_role_id = ? ";
+        List<SysRoleMenu> roleMenus = baseJdbcDao.findList(SysRoleMenu.class, sql, id);
+        role.setRoleMenus(roleMenus);
+        return role;
     }
 
     /**
-     * ids批量删除机构
+     * ids批量删除角色
      */
     @Transactional
     public void del(String ids) {
-        String sql = "select * from sys_org where id in (%s)".formatted(ids);
-        List<SysOrg> list = baseJdbcDao.findList(SysOrg.class, sql);
-        for (SysOrg sysOrg : list) {
-            sysOrg.setDeleted(true);//已删除
-            baseJdbcDao.update(sysOrg);
+        String sql = "select * from sys_role where id in (%s)".formatted(ids);
+        List<SysRole> list = baseJdbcDao.findList(SysRole.class, sql);
+        for (SysRole sysRole : list) {
+            sysRole.setDeleted(true);//已删除
+            baseJdbcDao.update(sysRole);
         }
+    }
+
+    /**
+     * 查询角色可配置的所有菜单权限
+     */
+    @Transactional(readOnly = true)
+    public List<SysMenu> queryRoleMenu(Map<String, Object> param) {
+        log.info("查询角色可配置的所有菜单权限---");
+        if(param == null) param = new HashMap<>();
+        List<Object> args = new LinkedList<>();
+        String sql = "select * from sys_menu where deleted = 0 ";
+        //如果角色隶属于某个角色，那此角色只能维护隶属角色所拥有的角色权限
+        if(CommonUtil.isNotEmpty(param.get("parentId"))) {
+            sql += " and id in ( select sys_menu_id from sys_role_menu where sys_role_id = ?) ";
+            args.add(param.get("parentId"));
+        }
+        sql += " order by `order` asc";
+        return baseJdbcDao.findList(SysMenu.class, sql, args.toArray());
     }
 }

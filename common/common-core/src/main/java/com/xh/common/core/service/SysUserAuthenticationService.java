@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -73,7 +74,7 @@ public class SysUserAuthenticationService extends BaseServiceImpl {
      * 转为json数据
      */
     private void writeMessage(HttpServletResponse response, Object object) {
-        response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType("application/json; charset=utf-8");
         try (PrintWriter writer = response.getWriter()) {
             String jsonStr = jsonMapper.writeValueAsString(object);

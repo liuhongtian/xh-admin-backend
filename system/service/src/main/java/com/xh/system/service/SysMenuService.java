@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import java.util.Map;
  * sunxh 2023/4/16
  */
 @Service
+
 public class SysMenuService extends BaseServiceImpl {
 
     /**
@@ -28,6 +30,7 @@ public class SysMenuService extends BaseServiceImpl {
     public PageResult<SysMenu> query(PageQuery<Map<String, Object>> pageQuery) {
         WebLogs.info("菜单列表查询---");
         Map<String, Object> param = pageQuery.getParam();
+        if(param == null) param = new HashMap<>();
         String flag = CommonUtil.getString(param.get("flag"));
         String sql = "select * from sys_menu where deleted = 0 ";
         if (CommonUtil.isNotEmpty(param.get("title"))) {

@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.6</version>
+        <version>3.1.1</version>
         <relativePath/>
     </parent>
 
@@ -20,12 +20,12 @@
     <properties>
         <!--    基础版本    -->
         <xh-bms.version>0.0.1-SNAPSHOT</xh-bms.version>
-        <spring-cloud.version>2022.0.2</spring-cloud.version>
+        <spring-cloud.version>2022.0.3</spring-cloud.version>
         <!--   这个是预发布版本     -->
-        <spring-cloud-alibaba.version>2022.0.0.0-RC1</spring-cloud-alibaba.version>
-        <minio.version>8.5.2</minio.version>
+        <spring-cloud-alibaba.version>2022.0.0.0-RC2</spring-cloud-alibaba.version>
+        <minio.version>8.5.4</minio.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.1.0</springdoc-openapi-starter-webmvc-ui.version>
-        <guava.version>31.1-jre</guava.version>
+        <guava.version>32.1.1-jre</guava.version>
     </properties>
 
     <modules>
@@ -117,7 +117,7 @@
 
     <build>
         <!--  全局通用配置    -->
-        <!--  参考文档 https://docs.spring.io/spring-boot/docs/3.0.5/maven-plugin/reference/htmlsingle/#packaging      -->
+        <!--  参考文档 https://docs.spring.io/spring-boot/docs/3.1.1/maven-plugin/reference/htmlsingle/#packaging      -->
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -133,7 +133,7 @@
                             <!-- 镜像打标签 -->
                             <tags>
                                 <!-- 示例： 镜像库地址/镜像名称:标签  -->
-                                <!--                                <tag>localhost:5000/${project.artifactId}:latest</tag>-->
+                                <!-- <tag>localhost:5000/${project.artifactId}:latest</tag>-->
                             </tags>
                             <!-- 如果要推送到镜像库，设为true -->
                             <!-- <publish>true</publish> -->

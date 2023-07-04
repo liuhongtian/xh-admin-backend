@@ -24,7 +24,7 @@ public class MyControllerAdvice {
         return response;
     }
 
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public RestResponse<?> handleControllerException(HttpServletRequest request, Throwable ex) {
         ex.printStackTrace();
