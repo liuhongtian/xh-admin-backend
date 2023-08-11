@@ -124,6 +124,15 @@ public class FileOperationService extends BaseServiceImpl {
     @Transactional
     public void downloadFile(DownloadFileDTO downloadFileDTO, HttpServletResponse response) {
         MinioClient minioClient = getMinioClient();
+        if(CommonUtil.isEmpty(downloadFileDTO.getObject())) {
+            if(downloadFileDTO.getId() == null) throw new MyException("参数异常");
+            SysFile sysFile = baseJdbcDao.findById(SysFile.class, downloadFileDTO.getId());
+            downloadFileDTO.setObject(sysFile.getObject());
+            downloadFileDTO.setContentType(sysFile.getContentType());
+            if(CommonUtil.isEmpty(downloadFileDTO.getFileName())){
+                downloadFileDTO.setFileName(sysFile.getName());
+            }
+        }
         try (InputStream inputStream = minioClient.getObject(
                 GetObjectArgs.builder()
                         .bucket(bucket)
@@ -198,6 +207,10 @@ public class FileOperationService extends BaseServiceImpl {
         if (CommonUtil.isNotEmpty(param.get("sha1"))) {
             sql += " and sha1 = ? ";
             pageQuery.addArg(param.get("sha1"));
+        }
+        if (CommonUtil.isNotEmpty(param.get("type"))) {
+            sql += " and content_type like  ? '%' ";
+            pageQuery.addArg(param.get("type"));
         }
         sql += " order by create_time desc";
         pageQuery.setBaseSql(sql);

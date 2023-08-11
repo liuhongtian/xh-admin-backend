@@ -11,7 +11,9 @@ import lombok.Data;
 @Schema(description = "文件下载")
 @Data
 public class DownloadFileDTO {
-    @Schema(title = "对象存储key", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(title = "文件表ID")
+    private Integer id;
+    @Schema(title = "对象存储key")
     private String object;
     @Schema(title = "文件MIME类型")
     private String contentType;

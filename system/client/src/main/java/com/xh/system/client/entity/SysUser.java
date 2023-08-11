@@ -19,6 +19,8 @@ public class SysUser extends BaseEntity<Integer> {
     private String name;
     @Schema(title = "密码")
     private String password;
+    @Schema(title = "头像")
     private String avatar;
+    @Schema(title = "是否启用")
     private Boolean enabled;
 }
