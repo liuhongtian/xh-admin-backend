@@ -1,19 +1,16 @@
-package com.xh.system.client.entity;
+package com.xh.common.core.dto;
 
-import com.xh.common.core.entity.BaseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
+/**
+ * 存放系统登录的用户信息DTO
+ *
+ * @author sunxh 2023/3/1
+ */
 
-@Schema(title = "系统用户岗位表")
-@Table
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class SysUserJob extends BaseEntity<Integer> {
-
+public class SysOrgRoleDTO extends BaseDTO<Integer> {
     @Schema(title = "数据类型", allowableValues = {"1", "2"}, description = "1：用户，2：用户组")
     private Integer type;
     @Schema(title = "用户id或者用户组的id")
@@ -24,14 +21,10 @@ public class SysUserJob extends BaseEntity<Integer> {
     private Integer sysRoleId;
     @Schema(title = "是否启用1：是，0：否")
     private Boolean enabled;
-
     @Schema(title = "机构代码")
-    @Transient
     private String orgCode;
     @Schema(title = "机构名称")
-    @Transient
     private String orgName;
     @Schema(title = "角色名称")
-    @Transient
     private String roleName;
 }

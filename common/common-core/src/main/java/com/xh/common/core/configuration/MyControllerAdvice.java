@@ -1,5 +1,6 @@
 package com.xh.common.core.configuration;
 
+import cn.dev33.satoken.exception.SaTokenException;
 import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.RestResponse;
 import jakarta.servlet.RequestDispatcher;
@@ -22,6 +23,40 @@ public class MyControllerAdvice {
         RestResponse<String> response = RestResponse.error(ex.getMessage());
         response.setHttpCode(HttpStatus.OK.value());
         return response;
+    }
+
+    @ExceptionHandler(SaTokenException.class)
+    public RestResponse<?> handlerSaTokenException(SaTokenException e) {
+        RestResponse<?> res = RestResponse.error("服务器繁忙，请稍后重试...");
+        // 根据不同异常细分状态码返回不同的提示
+        if (e.getCode() == 11001) {
+            res.setMessage("用户未登录!");
+            res.setHttpCode(HttpStatus.UNAUTHORIZED.value());
+        }
+        if (e.getCode() == 11012) {
+            res.setHttpCode(HttpStatus.UNAUTHORIZED.value());
+            res.setMessage("登录状态已过期，请重新登录!");
+        }
+        if (e.getCode() == 11014) {
+            res.setHttpCode(HttpStatus.UNAUTHORIZED.value());
+            res.setMessage("用户在其他地方登录，已被顶下线！");
+        }
+        if (e.getCode() == 11015) {
+            res.setHttpCode(HttpStatus.UNAUTHORIZED.value());
+            res.setMessage("用户已被管理员踢下线！");
+        }
+        if (e.getCode() == 11016) {
+            res.setMessage("Token已被冻结！");
+        }
+        if (e.getCode() == 11041) {
+            res.setHttpCode(HttpStatus.FORBIDDEN.value());
+            res.setMessage("角色无权操作！");
+        }
+        if (e.getCode() == 11051) {
+            res.setHttpCode(HttpStatus.FORBIDDEN.value());
+            res.setMessage("用户操作权限不足！");
+        }
+        return res;
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

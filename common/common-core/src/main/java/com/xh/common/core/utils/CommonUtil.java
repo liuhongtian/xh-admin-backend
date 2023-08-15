@@ -112,24 +112,16 @@ public class CommonUtil {
             while ((len = inputStream.read(buffer)) > 0) {
                 digest.update(buffer, 0, len);
             }
-            String sha1 = new BigInteger(1, digest.digest()).toString(16);
+            StringBuilder sha1 = new StringBuilder(new BigInteger(1, digest.digest()).toString(16));
             int length = 40 - sha1.length();
             if (length > 0) {
                 for (int i = 0; i < length; i++) {
-                    sha1 = "0" + sha1;
+                    sha1.insert(0, "0");
                 }
             }
-            return sha1;
+            return sha1.toString();
         } catch (IOException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
-        } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 }

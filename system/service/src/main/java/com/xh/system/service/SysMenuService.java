@@ -30,7 +30,7 @@ public class SysMenuService extends BaseServiceImpl {
     public PageResult<SysMenu> query(PageQuery<Map<String, Object>> pageQuery) {
         WebLogs.info("菜单列表查询---");
         Map<String, Object> param = pageQuery.getParam();
-        if(param == null) param = new HashMap<>();
+        if (param == null) param = new HashMap<>();
         String flag = CommonUtil.getString(param.get("flag"));
         String sql = "select * from sys_menu where deleted = 0 ";
         if (CommonUtil.isNotEmpty(param.get("title"))) {
@@ -69,6 +69,14 @@ public class SysMenuService extends BaseServiceImpl {
     @Transactional
     public SysMenu save(SysMenu sysMenu) {
         WebLogs.getLogger().info("菜单保存---");
+
+        String sql = "select count(1) from sys_menu where deleted = 0 and name = ?";
+        if (sysMenu.getId() != null) {
+            sql += " and id <> %s ".formatted(sysMenu.getId());
+        }
+        Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class, sysMenu.getName());
+        assert  count != null;
+        if (count > 0) throw new MyException("菜单name：%s重复！".formatted(sysMenu.getName()));
         if (sysMenu.getId() == null) baseJdbcDao.insert(sysMenu);
         else baseJdbcDao.update(sysMenu);
         return sysMenu;

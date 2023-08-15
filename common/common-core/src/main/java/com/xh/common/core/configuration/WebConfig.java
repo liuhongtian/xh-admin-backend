@@ -1,5 +1,7 @@
 package com.xh.common.core.configuration;
 
+import cn.dev33.satoken.interceptor.SaInterceptor;
+import cn.dev33.satoken.stp.StpUtil;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
@@ -11,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -30,8 +33,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Resource
     private MyLoggerInterceptor myLoggerInterceptor;
-    @Resource
-    private MyWebInterceptor myWebInterceptor;
 
     /**
      * 资源跨域设置
@@ -52,7 +53,20 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(@Nonnull InterceptorRegistry registry) {
         WebMvcConfigurer.super.addInterceptors(registry);
         myLoggerInterceptor.addInterceptor(registry);
-        myWebInterceptor.addInterceptor(registry);
+        // 注册 Sa-Token 拦截器，打开注解式鉴权功能
+        registry.addInterceptor(
+                        new SaInterceptor(handle -> {
+                            if(handle instanceof HandlerMethod){
+                                StpUtil.checkLogin();
+                            }
+                        })
+                )
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs"
+                ).order(5);
     }
 
     /**

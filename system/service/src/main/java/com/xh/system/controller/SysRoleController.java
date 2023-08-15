@@ -1,5 +1,7 @@
 package com.xh.system.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaMode;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.common.core.web.RestResponse;
@@ -18,6 +20,7 @@ import java.util.Map;
 @Tag(name = "系统角色")
 @RestController
 @RequestMapping("/api/system/role")
+@SaCheckPermission("system:role")
 public class SysRoleController {
 
     @Resource
@@ -30,18 +33,21 @@ public class SysRoleController {
         return RestResponse.success(data);
     }
 
+    @SaCheckPermission(value = {"system:role:add", "system:role:edit"}, mode = SaMode.OR)
     @Operation(description = "角色保存")
     @PostMapping("/save")
     public RestResponse<SysRole> save(@RequestBody SysRole sysRole) {
         return RestResponse.success(sysRoleService.save(sysRole));
     }
 
+    @SaCheckPermission(value = {"system:role:edit", "system:role:detail"}, mode = SaMode.OR)
     @Operation(description = "获取角色详情")
     @GetMapping("/get/{id}")
     public RestResponse<SysRole> getById(@PathVariable Serializable id) {
         return RestResponse.success(sysRoleService.getById(id));
     }
 
+    @SaCheckPermission("system:role:del")
     @Operation(description = "角色批量删除")
     @DeleteMapping("/del/{ids}")
     public RestResponse<?> del(@PathVariable String ids) {

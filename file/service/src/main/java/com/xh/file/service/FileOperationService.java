@@ -1,5 +1,6 @@
 package com.xh.file.service;
 
+import cn.dev33.satoken.annotation.SaIgnore;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.WebLogs;
@@ -28,6 +29,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -121,6 +123,7 @@ public class FileOperationService extends BaseServiceImpl {
     /**
      * 文件下载
      */
+    @SaIgnore
     @Transactional
     public void downloadFile(DownloadFileDTO downloadFileDTO, HttpServletResponse response) {
         MinioClient minioClient = getMinioClient();
@@ -140,7 +143,7 @@ public class FileOperationService extends BaseServiceImpl {
                         .build())) {
             response.setCharacterEncoding("UTF-8");
             if (CommonUtil.isNotEmpty(downloadFileDTO.getFileName())) {
-                String fileName = URLEncoder.encode(downloadFileDTO.getFileName(), "UTF-8");
+                String fileName = URLEncoder.encode(downloadFileDTO.getFileName(), StandardCharsets.UTF_8);
                 //设置响应头中文件的下载方式为附件方式，以及设置文件名
                 response.setHeader("Content-Disposition",
                         "%s; filename=%s".formatted(downloadFileDTO.getDisposition(), fileName));

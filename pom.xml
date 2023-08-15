@@ -26,6 +26,7 @@
         <minio.version>8.5.4</minio.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.1.0</springdoc-openapi-starter-webmvc-ui.version>
         <guava.version>32.1.1-jre</guava.version>
+        <sa-token-spring-boot3-starter.version>1.35.0.RC</sa-token-spring-boot3-starter.version>
     </properties>
 
     <modules>
@@ -107,6 +108,17 @@
                 <groupId>com.xh</groupId>
                 <artifactId>file-client</artifactId>
                 <version>${xh-bms.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-boot3-starter</artifactId>
+                <version>${sa-token-spring-boot3-starter.version}</version>
+            </dependency>
+            <!-- Sa-Token 整合 Redis （使用 jackson 序列化方式） -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-redis-jackson</artifactId>
+                <version>${sa-token-spring-boot3-starter.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

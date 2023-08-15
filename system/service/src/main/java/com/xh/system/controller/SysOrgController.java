@@ -1,5 +1,7 @@
 package com.xh.system.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaMode;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.common.core.web.RestResponse;
@@ -16,6 +18,7 @@ import java.util.Map;
 @Tag(name = "系统机构")
 @RestController
 @RequestMapping("/api/system/org")
+@SaCheckPermission("system:org")
 public class SysOrgController {
 
     @Resource
@@ -35,19 +38,21 @@ public class SysOrgController {
         return RestResponse.success(data);
     }
 
+    @SaCheckPermission(value = {"system:org:add", "system:org:edit"}, mode = SaMode.OR)
     @Operation(description = "机构保存")
     @PostMapping("/save")
     public RestResponse<SysOrg> save(@RequestBody SysOrg sysOrg) {
         return RestResponse.success(sysOrgService.save(sysOrg));
     }
 
+    @SaCheckPermission(value = {"system:org:edit", "system:org:detail"}, mode = SaMode.OR)
     @Operation(description = "获取机构详情")
     @GetMapping("/get/{id}")
     public RestResponse<SysOrg> getById(@PathVariable Serializable id) {
         return RestResponse.success(sysOrgService.getById(id));
     }
 
-
+    @SaCheckPermission("system:org:del")
     @Operation(description = "机构批量删除")
     @DeleteMapping("/del/{ids}")
     public RestResponse<?> del(@PathVariable String ids) {

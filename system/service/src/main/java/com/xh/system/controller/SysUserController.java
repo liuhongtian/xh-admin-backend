@@ -1,5 +1,8 @@
 package com.xh.system.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaIgnore;
+import cn.dev33.satoken.annotation.SaMode;
 import com.xh.common.core.dto.SysLoginUserInfoDto;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
@@ -8,6 +11,7 @@ import com.xh.system.client.dto.SysUserJobDTO;
 import com.xh.system.client.entity.SysUser;
 import com.xh.system.client.entity.SysUserGroup;
 import com.xh.system.client.entity.SysUserJob;
+import com.xh.system.service.SysLoginService;
 import com.xh.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,27 +28,32 @@ import java.util.Map;
 public class SysUserController {
 
     @Resource
+    private SysLoginService sysLoginService;
+    @Resource
     private SysUserService sysUserService;
 
+    @SaIgnore
     @Operation(description = "web管理系统登录")
     @PostMapping("/login")
     public RestResponse<SysLoginUserInfoDto> login(@RequestBody Map<String, Object> params) {
-        return sysUserService.login(params);
+        return RestResponse.success(sysLoginService.login(params));
     }
 
     @Operation(description = "web管理系统注销")
     @PostMapping("/logout")
     public RestResponse<?> login() {
-        return sysUserService.logout();
+        return sysLoginService.logout();
     }
 
     @Operation(description = "用户列表查询")
     @PostMapping("/query")
+    @SaCheckPermission("system:user")
     public RestResponse<PageResult<SysUser>> query(@RequestBody PageQuery<Map<String, Object>> pageQuery) {
         PageResult<SysUser> data = sysUserService.query(pageQuery);
         return RestResponse.success(data);
     }
 
+    @SaCheckPermission(value = {"system:user:add", "system:user:edit"}, mode = SaMode.OR)
     @Operation(description = "切换用户字段值")
     @PostMapping("/switch_prop")
     public RestResponse<PageResult<SysUser>> switchMenuProp(@RequestBody Map<String, Object> param) {
@@ -52,18 +61,21 @@ public class SysUserController {
         return RestResponse.success();
     }
 
+    @SaCheckPermission(value = {"system:user:add", "system:user:edit"}, mode = SaMode.OR)
     @Operation(description = "用户保存")
     @PostMapping("/save")
     public RestResponse<SysUser> save(@RequestBody SysUser sysUser) {
         return RestResponse.success(sysUserService.save(sysUser));
     }
 
+    @SaCheckPermission(value = {"system:user:edit", "system:user:detail"}, mode = SaMode.OR)
     @Operation(description = "获取用户详情")
     @GetMapping("/get/{id}")
     public RestResponse<SysUser> getById(@PathVariable Serializable id) {
         return RestResponse.success(sysUserService.getById(id));
     }
 
+    @SaCheckPermission("system:user:del")
     @Operation(description = "用户批量删除")
     @DeleteMapping("/del/{ids}")
     public RestResponse<?> del(@PathVariable String ids) {
@@ -71,6 +83,7 @@ public class SysUserController {
         return RestResponse.success();
     }
 
+    @SaCheckPermission("system:userGroup")
     @Operation(description = "系统用户组查询")
     @PostMapping("/queryUserGroupList")
     public RestResponse<PageResult<SysUserGroup>> queryUserGroupList(@RequestBody PageQuery<Map<String, Object>> pageQuery) {
@@ -78,18 +91,21 @@ public class SysUserController {
         return RestResponse.success(data);
     }
 
+    @SaCheckPermission(value = {"system:userGroup:add", "system:userGroup:edit"}, mode = SaMode.OR)
     @Operation(description = "用户组保存")
     @PostMapping("/saveUserGroup")
     public RestResponse<SysUserGroup> saveUserGroup(@RequestBody SysUserGroup sysUserGroup) {
         return RestResponse.success(sysUserService.saveUserGroup(sysUserGroup));
     }
 
+    @SaCheckPermission(value = {"system:userGroup:edit", "system:userGroup:detail"}, mode = SaMode.OR)
     @Operation(description = "id获取用户组详情")
     @GetMapping("/getUserGroup/{id}")
     public RestResponse<SysUserGroup> getUserGroupById(@PathVariable Serializable id) {
         return RestResponse.success(sysUserService.getUserGroupById(id));
     }
 
+    @SaCheckPermission("system:userGroup:del")
     @Operation(description = "ids批量删除用户组")
     @DeleteMapping("/delUserGroup/{ids}")
     public RestResponse<?> delUserGroup(@PathVariable String ids) {
@@ -97,12 +113,14 @@ public class SysUserController {
         return RestResponse.success();
     }
 
+    @SaCheckPermission(value = {"system:user", "system:userGroup"}, mode = SaMode.OR)
     @Operation(description = "获取用户或者用户组的岗位信息")
     @GetMapping("/getUserJobs")
     public RestResponse<List<SysUserJob>> getUserJobs(@RequestParam Map<String, Object> param) {
         return RestResponse.success(sysUserService.getUserJobs(param));
     }
 
+    @SaCheckPermission(value = {"system:user", "system:userGroup"}, mode = SaMode.OR)
     @Operation(description = "用户岗位保存")
     @PostMapping("/saveUserJobs")
     public RestResponse<?> saveUserJobs(@RequestBody SysUserJobDTO sysUserJobDTO) {
@@ -110,6 +128,7 @@ public class SysUserController {
         return RestResponse.success();
     }
 
+    @SaCheckPermission(value = {"system:user:detail"}, mode = SaMode.OR)
     @Operation(description = "id获取用户所在的所有用户组信息")
     @GetMapping("/getUserGroups/{id}")
     public RestResponse<List<SysUserGroup>> getUserGroups(@PathVariable Serializable id) {

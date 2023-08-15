@@ -1,5 +1,8 @@
 package com.xh.file.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaIgnore;
+import cn.dev33.satoken.annotation.SaMode;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.common.core.web.RestResponse;
@@ -34,12 +37,14 @@ public class FileOperationController {
         return RestResponse.success(sysFile);
     }
 
+    @SaIgnore
     @Operation(description = "文件下载（图片预览）")
     @GetMapping("/download")
     public void downloadFile(DownloadFileDTO downloadFileDTO, HttpServletResponse response) {
         fileOperationService.downloadFile(downloadFileDTO, response);
     }
 
+    @SaCheckPermission("system:file")
     @Operation(description = "文件列表查询")
     @PostMapping("/query")
     public RestResponse<PageResult<SysFile>> query(@RequestBody PageQuery<Map<String, Object>> pageQuery) {
@@ -47,18 +52,21 @@ public class FileOperationController {
         return RestResponse.success(data);
     }
 
+    @SaCheckPermission("system:file:edit")
     @Operation(description = "文件保存")
     @PostMapping("/save")
     public RestResponse<SysFile> save(@RequestBody SysFile sysMenu) {
         return RestResponse.success(fileOperationService.save(sysMenu));
     }
 
+    @SaCheckPermission(value = {"system:file:edit", "system:file:detail"}, mode = SaMode.OR)
     @Operation(description = "获取系统文件详情")
     @GetMapping("/get/{id}")
     public RestResponse<SysFile> getById(@PathVariable Serializable id) {
         return RestResponse.success(fileOperationService.getById(id));
     }
 
+    @SaCheckPermission("system:file:del")
     @Operation(description = "批量删除文件")
     @DeleteMapping("/del/{ids}")
     public RestResponse<?> del(@PathVariable String ids) {
