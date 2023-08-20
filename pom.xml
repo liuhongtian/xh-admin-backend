@@ -27,6 +27,7 @@
         <springdoc-openapi-starter-webmvc-ui.version>2.1.0</springdoc-openapi-starter-webmvc-ui.version>
         <guava.version>32.1.1-jre</guava.version>
         <sa-token-spring-boot3-starter.version>1.35.0.RC</sa-token-spring-boot3-starter.version>
+        <hutool-version>5.8.21</hutool-version>
     </properties>
 
     <modules>
@@ -119,6 +120,11 @@
                 <groupId>cn.dev33</groupId>
                 <artifactId>sa-token-redis-jackson</artifactId>
                 <version>${sa-token-spring-boot3-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-http</artifactId>
+                <version>${hutool-version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

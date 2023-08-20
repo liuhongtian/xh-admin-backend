@@ -28,6 +28,8 @@ public class OnlineUserDTO implements Serializable {
     private String loginAddress;
     @Schema(title = "登录浏览器")
     private String loginBrowser;
+    @Schema(title = "浏览器版本")
+    private String browserVersion;
     @Schema(title = "操作系统")
     private String loginOs;
     @Schema(title = "是否手机端")

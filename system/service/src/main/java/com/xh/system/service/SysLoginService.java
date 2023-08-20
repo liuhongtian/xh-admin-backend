@@ -77,6 +77,7 @@ public class SysLoginService extends BaseServiceImpl {
             onlineUserDTO.setUserCode(sysUser.getCode());
             onlineUserDTO.setUserName(sysUser.getName());
             onlineUserDTO.setLoginBrowser(ua.getBrowser().getName());
+            onlineUserDTO.setBrowserVersion(ua.getVersion());
             onlineUserDTO.setLoginIp(ip);
             onlineUserDTO.setLoginBrowser(ua.getBrowser().getName());
             onlineUserDTO.setLoginOs(ua.getOs().getName());
