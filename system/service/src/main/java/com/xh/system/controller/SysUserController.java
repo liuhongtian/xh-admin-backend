@@ -3,7 +3,7 @@ package com.xh.system.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.annotation.SaMode;
-import com.xh.common.core.dto.SysLoginUserInfoDto;
+import com.xh.common.core.dto.OnlineUserDTO;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.common.core.web.RestResponse;
@@ -11,11 +11,13 @@ import com.xh.system.client.dto.SysUserJobDTO;
 import com.xh.system.client.entity.SysUser;
 import com.xh.system.client.entity.SysUserGroup;
 import com.xh.system.client.entity.SysUserJob;
+import com.xh.system.client.vo.LoginUserInfoVO;
 import com.xh.system.service.SysLoginService;
 import com.xh.system.service.SysUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.Serializable;
@@ -35,8 +37,15 @@ public class SysUserController {
     @SaIgnore
     @Operation(description = "web管理系统登录")
     @PostMapping("/login")
-    public RestResponse<SysLoginUserInfoDto> login(@RequestBody Map<String, Object> params) {
-        return RestResponse.success(sysLoginService.login(params));
+    public RestResponse<LoginUserInfoVO> login(HttpServletRequest request, @RequestBody Map<String, Object> params) {
+        return RestResponse.success(sysLoginService.login(request, params));
+    }
+
+    @SaIgnore
+    @Operation(description = "web管理系统角色切换")
+    @PostMapping("/switchUserRole")
+    public RestResponse<LoginUserInfoVO> switchUserRole(@RequestBody Map<String, Object> params) {
+        return RestResponse.success(sysLoginService.switchUserRole(params));
     }
 
     @Operation(description = "web管理系统注销")
@@ -133,5 +142,21 @@ public class SysUserController {
     @GetMapping("/getUserGroups/{id}")
     public RestResponse<List<SysUserGroup>> getUserGroups(@PathVariable Serializable id) {
         return RestResponse.success(sysUserService.getUserGroups(id));
+    }
+
+    @SaCheckPermission("monitor:online")
+    @Operation(description = "在线用户查询")
+    @PostMapping("/queryOnlineUser")
+    public RestResponse<PageResult<OnlineUserDTO>> queryOnlineUser(@RequestBody PageQuery<Map<String, Object>> pageQuery) {
+        PageResult<OnlineUserDTO> data = sysLoginService.queryOnlineUser(pageQuery);
+        return RestResponse.success(data);
+    }
+
+    @SaCheckPermission("monitor:online")
+    @Operation(description = "踢用户下线")
+    @PostMapping("/kickOut")
+    public RestResponse<?> kickOut(@RequestBody String token) {
+        sysLoginService.kickOut(token);
+        return RestResponse.success();
     }
 }

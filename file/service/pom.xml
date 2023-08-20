@@ -43,10 +43,6 @@
         </dependency>
         <dependency>
             <groupId>com.xh</groupId>
-            <artifactId>system-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.xh</groupId>
             <artifactId>file-client</artifactId>
         </dependency>
     </dependencies>

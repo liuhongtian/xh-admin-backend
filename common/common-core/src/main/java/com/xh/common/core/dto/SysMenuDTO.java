@@ -2,15 +2,19 @@ package com.xh.common.core.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * 存放系统登录的用户信息DTO
+ * 角色权限菜单DTO
  *
  * @author sunxh 2023/3/1
  */
+@EqualsAndHashCode(callSuper = true)
 @Schema(description = "承载当前登录用户拥有的菜单权限")
 @Data
 public class SysMenuDTO extends BaseDTO<Integer> {
+    @Schema(title = "角色id")
+    private Integer roleId;
     @Schema(title = "上级id")
     private Integer parentId;
     @Schema(title = "菜单标题")

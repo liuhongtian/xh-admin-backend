@@ -29,6 +29,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/cn.hutool/hutool-all -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-http</artifactId>
+            <version>5.8.21</version>
+        </dependency>
         <dependency>
             <groupId>com.xh</groupId>
             <artifactId>system-client</artifactId>

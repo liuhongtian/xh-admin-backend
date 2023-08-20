@@ -54,7 +54,7 @@ public class MyControllerAdvice {
         }
         if (e.getCode() == 11051) {
             res.setHttpCode(HttpStatus.FORBIDDEN.value());
-            res.setMessage("用户操作权限不足！");
+            res.setMessage("权限不足，无法操作！");
         }
         return res;
     }
