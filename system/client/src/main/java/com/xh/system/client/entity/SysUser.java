@@ -21,6 +21,14 @@ public class SysUser extends BaseEntity<Integer> {
     private String password;
     @Schema(title = "头像")
     private String avatar;
+    @Schema(title = "手机号码")
+    private String telephone;
+    @Schema(title = "状态（1：正常，2：锁定）")
+    private Integer status;
+    @Schema(title = "登录失败的次数")
+    private Integer failuresNum;
+    @Schema(title = "账号锁定的原因")
+    private String lockMsg;
     @Schema(title = "是否启用")
     private Boolean enabled;
 }

@@ -8,10 +8,7 @@ import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.system.client.dto.SysUserJobDTO;
-import com.xh.system.client.entity.SysUser;
-import com.xh.system.client.entity.SysUserGroup;
-import com.xh.system.client.entity.SysUserGroupMember;
-import com.xh.system.client.entity.SysUserJob;
+import com.xh.system.client.entity.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,14 +72,28 @@ public class SysUserService extends BaseServiceImpl {
         Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class, sysUser.getCode());
         assert count != null;
         if (count > 0) throw new MyException("用户账号%s已存在！".formatted(sysUser.getCode()));
+        if (CommonUtil.isNotEmpty(sysUser.getPassword())) {
+            // 密码加密
+            String pwHash = BCrypt.hashpw(sysUser.getPassword(), BCrypt.gensalt());
+            sysUser.setPassword(pwHash);
+        }
         if (sysUser.getId() == null) {
-            if (CommonUtil.isNotEmpty(sysUser.getPassword())) {
-                // 密码加密
-                String pwHash = BCrypt.hashpw(sysUser.getPassword(), BCrypt.gensalt());
-                sysUser.setPassword(pwHash);
-            }
+            sysUser.setStatus(1);
             baseJdbcDao.insert(sysUser);
         } else {
+            SysUser oldUser = baseJdbcDao.findById(SysUser.class, sysUser.getId());
+            if (CommonUtil.isNotEmpty(sysUser.getPassword())) {
+                if (oldUser.getPassword().equals(sysUser.getPassword()))
+                    throw new MyException("新密码不能与旧密码相同！");
+                //记录密码修改日志
+                SysUserPasswordLog passwordLog = new SysUserPasswordLog();
+                passwordLog.setSysUserId(sysUser.getId());
+                passwordLog.setOldPassword(oldUser.getPassword());
+                passwordLog.setOldPassword(sysUser.getPassword());
+                baseJdbcDao.insert(passwordLog);
+            } else {
+                sysUser.setPassword(oldUser.getPassword());
+            }
             baseJdbcDao.update(sysUser);
         }
         return sysUser;

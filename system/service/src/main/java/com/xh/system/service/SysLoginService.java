@@ -17,11 +17,16 @@ import com.xh.common.core.web.PageResult;
 import com.xh.common.core.web.RestResponse;
 import com.xh.system.client.entity.SysUser;
 import com.xh.system.client.vo.LoginUserInfoVO;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -33,6 +38,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class SysLoginService extends BaseServiceImpl {
+
+    @Resource
+    private DataSourceTransactionManager dstManager;
 
     /**
      * 管理端用户登录
@@ -54,9 +62,45 @@ public class SysLoginService extends BaseServiceImpl {
             SysUser sysUser = baseJdbcDao.findBySql(SysUser.class, sql, username);
 
             if (sysUser == null) throw new MyException("账号不存在");
-
+            if (CommonUtil.getString(sysUser.getStatus()).equals("2"))
+                throw new MyException(sysUser.getLockMsg());
             boolean matches = BCrypt.checkpw(password, sysUser.getPassword());
-            if (!matches) throw new MyException("密码错误！");
+            if (!matches) {
+                try {
+                    //最大尝试次数
+                    int maxTryNum = 3;
+                    Integer failuresNum = sysUser.getFailuresNum();
+                    if (failuresNum == null) failuresNum = 0;
+                    failuresNum++;
+                    //记录登录失败次数
+                    sysUser.setFailuresNum(failuresNum);
+                    //失败次数大于最大尝试次数账号锁定，保存
+                    if (failuresNum >= maxTryNum) {
+                        sysUser.setStatus(2);
+                        sysUser.setLockMsg("用户登录失败次数超过%s次，账号已锁定，请联系管理员处理。".formatted(maxTryNum));
+                        throw new MyException(sysUser.getLockMsg());
+                    }
+                    throw new MyException("密码错误！您还可以尝试%s次。".formatted(maxTryNum - failuresNum));
+                } finally {
+                    // 开启新事务，保存用户登录的失败信息
+                    DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+                    def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+                    // 获得事务状态
+                    TransactionStatus transaction = dstManager.getTransaction(def);
+                    try {
+                        baseJdbcDao.update(sysUser);
+                        dstManager.commit(transaction);
+                    } catch (Exception e) {
+                        dstManager.rollback(transaction);
+                        WebLogs.error(e.getMessage());
+                    }
+                }
+            } else {
+                //失败次数置零
+                sysUser.setFailuresNum(0);
+                sysUser.setLockMsg(null);
+                baseJdbcDao.update(sysUser);
+            }
 
             StpUtil.login(sysUser.getId());
             //刷新用户信息和权限缓存

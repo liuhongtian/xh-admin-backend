@@ -127,12 +127,12 @@ public class FileOperationService extends BaseServiceImpl {
     @Transactional
     public void downloadFile(DownloadFileDTO downloadFileDTO, HttpServletResponse response) {
         MinioClient minioClient = getMinioClient();
-        if(CommonUtil.isEmpty(downloadFileDTO.getObject())) {
-            if(downloadFileDTO.getId() == null) throw new MyException("参数异常");
+        if (CommonUtil.isEmpty(downloadFileDTO.getObject())) {
+            if (downloadFileDTO.getId() == null) throw new MyException("参数异常");
             SysFile sysFile = baseJdbcDao.findById(SysFile.class, downloadFileDTO.getId());
             downloadFileDTO.setObject(sysFile.getObject());
             downloadFileDTO.setContentType(sysFile.getContentType());
-            if(CommonUtil.isEmpty(downloadFileDTO.getFileName())){
+            if (CommonUtil.isEmpty(downloadFileDTO.getFileName())) {
                 downloadFileDTO.setFileName(sysFile.getName());
             }
         }
@@ -153,8 +153,8 @@ public class FileOperationService extends BaseServiceImpl {
                 response.setContentType(downloadFileDTO.getContentType());
             }
             OutputStream outputStream = response.getOutputStream();
-            //如果图片预览缩略图
-            if (downloadFileDTO.getIsScale()) {
+            //如果图片预览缩略图，svg无须缩略
+            if (downloadFileDTO.getIsScale() && !downloadFileDTO.getObject().endsWith(".svg")) {
                 try {
                     //缩略图长边大小
                     double scaleWidth = downloadFileDTO.getScaleWidth();
@@ -168,12 +168,14 @@ public class FileOperationService extends BaseServiceImpl {
                         BufferedImage newBI = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
                         newBI.getGraphics().drawImage(image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH), 0, 0, null);
                         ImageIO.write(newBI, "webp", outputStream);
-                        return;
                     } else {
                         ImageIO.write(image, "webp", outputStream);
                     }
+                    return;
                 } catch (Exception e) {
                     log.error("图片缩放失败，{}", e.getMessage());
+                } finally {
+                    outputStream.close();
                 }
             }
             inputStream.transferTo(outputStream);
