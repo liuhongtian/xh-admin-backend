@@ -33,6 +33,10 @@ public class MyControllerAdvice {
             res.setMessage("用户未登录!");
             res.setHttpCode(HttpStatus.UNAUTHORIZED.value());
         }
+        if (e.getCode() == 11011) {
+            res.setMessage("未读到有效的token!");
+            res.setHttpCode(HttpStatus.UNAUTHORIZED.value());
+        }
         if (e.getCode() == 11012) {
             res.setHttpCode(HttpStatus.UNAUTHORIZED.value());
             res.setMessage("登录状态已过期，请重新登录!");

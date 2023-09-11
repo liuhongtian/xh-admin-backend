@@ -11,6 +11,7 @@ import com.xh.common.core.dto.*;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.WebLogs;
+import com.xh.common.core.utils.LoginUtil;
 import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
@@ -107,7 +108,7 @@ public class SysLoginService extends BaseServiceImpl {
             refreshUserPermission(sysUser.getId());
             session = StpUtil.getSession();
 
-            SysLoginUserInfoDTO loginUserInfoDTO = session.getModel("userInfo", SysLoginUserInfoDTO.class);
+            SysLoginUserInfoDTO loginUserInfoDTO = session.getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
             List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
             if (roles == null || roles.size() == 0) throw new MyException("当前账号未分配角色，无法登录！");
 
@@ -132,7 +133,7 @@ public class SysLoginService extends BaseServiceImpl {
             onlineUserDTO.setOrgName(orgRole.getOrgName());
             onlineUserDTO.setRoleName(orgRole.getRoleName());
             onlineUserDTO.setLoginTime(LocalDateTime.now());
-            StpUtil.getTokenSession().set("userInfo", onlineUserDTO);
+            StpUtil.getTokenSession().set(LoginUtil.SYS_USER_KEY, onlineUserDTO);
         }
         return getCurrentLoginUserVO();
     }
@@ -143,17 +144,17 @@ public class SysLoginService extends BaseServiceImpl {
     public LoginUserInfoVO switchUserRole(Map<String, Object> params) {
         String orgId = CommonUtil.getString(params.get("sysOrgId"));
         String roleId = CommonUtil.getString(params.get("sysRoleId"));
-        SysLoginUserInfoDTO loginUserInfoDTO = StpUtil.getSession().getModel("userInfo", SysLoginUserInfoDTO.class);
+        SysLoginUserInfoDTO loginUserInfoDTO = StpUtil.getSession().getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
         List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
         for (SysOrgRoleDTO orgRole : roles) {
             if (Objects.equals(orgRole.getSysOrgId().toString(), orgId) && Objects.equals(orgRole.getSysRoleId().toString(), roleId)) {
                 SaSession tokenSession = StpUtil.getTokenSession();
-                OnlineUserDTO onlineUserDTO = tokenSession.getModel("userInfo", OnlineUserDTO.class);
+                OnlineUserDTO onlineUserDTO = tokenSession.getModel(LoginUtil.SYS_USER_KEY, OnlineUserDTO.class);
                 onlineUserDTO.setOrgId(orgRole.getSysOrgId());
                 onlineUserDTO.setOrgName(orgRole.getOrgName());
                 onlineUserDTO.setRoleId(orgRole.getSysRoleId());
                 onlineUserDTO.setRoleName(orgRole.getRoleName());
-                tokenSession.set("userInfo", onlineUserDTO);
+                tokenSession.set(LoginUtil.SYS_USER_KEY, onlineUserDTO);
                 return getCurrentLoginUserVO();
             }
         }
@@ -182,7 +183,8 @@ public class SysLoginService extends BaseServiceImpl {
                 //过滤掉未登录的token
                 .filter(i -> StpUtil.getLoginIdByToken(i) != null)
                 .map(StpUtil::getTokenSessionByToken)
-                .map(i -> i.getModel("userInfo", OnlineUserDTO.class))
+                .map(i -> i.getModel(LoginUtil.SYS_USER_KEY, OnlineUserDTO.class))
+                .filter(Objects::nonNull)
                 //模糊查询
                 .filter(i -> {
                     boolean r = true;
@@ -272,7 +274,7 @@ public class SysLoginService extends BaseServiceImpl {
         loginUserInfoDTO.setUser(sysUserDTO);
         loginUserInfoDTO.setRoles(roles);
         loginUserInfoDTO.setRoleMenuMap(roleMenus);
-        session.set("userInfo", loginUserInfoDTO);
+        session.set(LoginUtil.SYS_USER_KEY, loginUserInfoDTO);
     }
 
     /**
@@ -284,12 +286,12 @@ public class SysLoginService extends BaseServiceImpl {
             SaSession tokenSession = StpUtil.getTokenSession();
             LoginUserInfoVO loginUserInfo = null;
             if (session != null && tokenSession != null) {
-                SysLoginUserInfoDTO loginUserInfoDTO = session.getModel("userInfo", SysLoginUserInfoDTO.class);
+                SysLoginUserInfoDTO loginUserInfoDTO = session.getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
                 loginUserInfo = new LoginUserInfoVO();
                 loginUserInfo.setTokenName(StpUtil.getTokenName());
                 loginUserInfo.setTokenValue(StpUtil.getTokenValue());
                 loginUserInfo.setUser(loginUserInfoDTO.getUser());
-                OnlineUserDTO onlineUser = (OnlineUserDTO) tokenSession.get("userInfo");
+                OnlineUserDTO onlineUser = (OnlineUserDTO) tokenSession.get(LoginUtil.SYS_USER_KEY);
                 List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
                 for (SysOrgRoleDTO role : roles) {
                     role.setActive(Objects.equals(onlineUser.getRoleId(), role.getSysRoleId()) && Objects.equals(onlineUser.getOrgId(), role.getSysOrgId()));

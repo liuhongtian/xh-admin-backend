@@ -40,8 +40,8 @@ public class FileOperationController {
     @SaIgnore
     @Operation(description = "文件下载（图片预览）")
     @GetMapping("/download")
-    public void downloadFile(DownloadFileDTO downloadFileDTO, HttpServletResponse response) {
-        fileOperationService.downloadFile(downloadFileDTO, response);
+    public void downloadFile(DownloadFileDTO downloadFileDTO, @RequestHeader(value = "Range", defaultValue = "") String range, HttpServletResponse response) {
+        fileOperationService.downloadFile(downloadFileDTO, range, response);
     }
 
     @SaCheckPermission("system:file")

@@ -105,7 +105,7 @@ public class CommonUtil {
      * 获取文件摘要sha1
      */
     public static String getFileSha1(InputStream inputStream) {
-        try {
+        try(inputStream) {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
             byte[] buffer = new byte[1024 * 1024 * 10];
             int len = 0;

@@ -22,8 +22,10 @@ public class DownloadFileDTO {
     private String disposition = "attachment";
     @Schema(title = "文件名")
     private String fileName;
-    @Schema(title = "缩略图显示", description = "是否压缩显示缩略图")
+    @Schema(title = "缩略图显示", description = "是否压缩显示缩略图，仅图片文件有效")
     private Boolean isScale = false;
-    @Schema(title = "缩略图长边大小", description = "以最长边缩小到此大小等比例缩放,默认60像素")
+    @Schema(title = "缩略图长边大小", description = "仅图片文件有效，以最长边缩小到此大小等比例缩放,默认60像素")
     private Double scaleWidth = 60.0;
+    @Schema(title = "视频帧图片预览", description = "仅视频文件有效，是可以传入需要预览视频第几帧图片，响应一个视频对应帧的图片流")
+    private Integer videoFrameNum;
 }

@@ -13,20 +13,24 @@ import io.minio.*;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Headers;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -61,7 +65,7 @@ public class FileOperationService extends BaseServiceImpl {
     /**
      * 上传单个文件
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public SysFile uploadFile(MultipartFile multipartFile) {
         try {
             //获取文件摘要sha1
@@ -92,28 +96,55 @@ public class FileOperationService extends BaseServiceImpl {
             sysFile.setSuffix(suffix);
             sysFile.setContentType(multipartFile.getContentType());
             sysFile.setName(filename);
-            try {
+            try (InputStream inputStream = multipartFile.getInputStream()) {
                 // 判断文件是否为图片文件，图片文件获取宽高，横纵比
-                BufferedImage image = ImageIO.read(multipartFile.getInputStream());
+                BufferedImage image = ImageIO.read(inputStream);
                 sysFile.setImgWidth(image.getWidth());
                 sysFile.setImgHeight(image.getHeight());
                 sysFile.setImgRatio(image.getWidth() / new BigDecimal(image.getHeight()).doubleValue());
             } catch (Exception e) {
                 log.info("非图片文件");
             }
+
+
+            //如果是视频文件，抽第十帧为视频缩略图，长边压缩至40像素
+            if (sysFile.getContentType().startsWith("video/")) {
+                try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+                    BufferedImage videoFrameImage = getVideoFrameImage(multipartFile.getInputStream(), 10);
+//                    //压缩
+//                    videoFrameImage = scaleImage(videoFrameImage, 200);
+
+                    ImageIO.write(videoFrameImage, "jpg", stream);
+                    try (InputStream inputStream = new ByteArrayInputStream(stream.toByteArray())) {
+                        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                                "视频预览图片",
+                                "视频预览图片.jpg",
+                                "image/jpeg",
+                                inputStream
+                        );
+                        //上传预览图片
+                        SysFile previewFile = uploadFile(mockMultipartFile);
+                        sysFile.setPreviewImageFileId(previewFile.getId());
+                    }
+                } catch (Exception e) {
+                    log.info("抽帧失败");
+                }
+            }
             sysFile.setStatus(1);
             sysFile.setSha1(sha1);
             baseJdbcDao.insert(sysFile);
 
-            //上传至文件存储服务器
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(object)
-                            .contentType(multipartFile.getContentType())
-                            .stream(multipartFile.getInputStream(), multipartFile.getSize(), -1)
-                            .build()
-            );
+            try (InputStream inputStream = multipartFile.getInputStream()) {
+                //上传至文件存储服务器
+                minioClient.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(object)
+                                .contentType(multipartFile.getContentType())
+                                .stream(inputStream, multipartFile.getSize(), -1)
+                                .build()
+                );
+            }
             return sysFile;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -121,11 +152,31 @@ public class FileOperationService extends BaseServiceImpl {
     }
 
     /**
-     * 文件下载
+     * 文件下载，支持断点下载，图片压缩缩略图，视频文件抽帧
      */
     @SaIgnore
     @Transactional
-    public void downloadFile(DownloadFileDTO downloadFileDTO, HttpServletResponse response) {
+    public void downloadFile(DownloadFileDTO downloadFileDTO, String range, HttpServletResponse response) {
+        long startByte = 0L;
+        Long endByte = null;
+        boolean hasRange = range != null && range.contains("bytes=") && range.contains("-");
+        if (hasRange) {
+            String rangeFormat = range.substring(range.lastIndexOf("=") + 1).trim();
+            String[] ranges = rangeFormat.split("-");
+            try {
+                if (rangeFormat.startsWith("-")) {
+                    endByte = Long.parseLong(ranges[1]);
+                } else if (rangeFormat.endsWith("-")) {
+                    startByte = Long.parseLong(ranges[0]);
+                } else if (ranges.length == 2) {
+                    startByte = Long.parseLong(ranges[0]);
+                    endByte = Long.parseLong(ranges[1]);
+                }
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+
         MinioClient minioClient = getMinioClient();
         if (CommonUtil.isEmpty(downloadFileDTO.getObject())) {
             if (downloadFileDTO.getId() == null) throw new MyException("参数异常");
@@ -136,50 +187,66 @@ public class FileOperationService extends BaseServiceImpl {
                 downloadFileDTO.setFileName(sysFile.getName());
             }
         }
-        try (InputStream inputStream = minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket(bucket)
-                        .object(downloadFileDTO.getObject())
-                        .build())) {
-            response.setCharacterEncoding("UTF-8");
-            if (CommonUtil.isNotEmpty(downloadFileDTO.getFileName())) {
-                String fileName = URLEncoder.encode(downloadFileDTO.getFileName(), StandardCharsets.UTF_8);
-                //设置响应头中文件的下载方式为附件方式，以及设置文件名
-                response.setHeader("Content-Disposition",
-                        "%s; filename=%s".formatted(downloadFileDTO.getDisposition(), fileName));
-            }
-            if (CommonUtil.isNotEmpty(downloadFileDTO.getContentType())) {
-                //设置Content-Type，这样可以使用浏览器原生的文件预览功能
-                response.setContentType(downloadFileDTO.getContentType());
-            }
-            OutputStream outputStream = response.getOutputStream();
+
+        GetObjectArgs.Builder builder = GetObjectArgs.builder()
+                .bucket(bucket)
+                .object(downloadFileDTO.getObject())
+                .offset(startByte);
+        if (endByte != null) {
+            builder.length(endByte - startByte + 1);
+        }
+        try (
+                GetObjectResponse objectResponse = minioClient.getObject(builder.build());
+                OutputStream outputStream = response.getOutputStream()
+        ) {
+            StatObjectResponse statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(downloadFileDTO.getObject())
+                    .build());
             //如果图片预览缩略图，svg无须缩略
-            if (downloadFileDTO.getIsScale() && !downloadFileDTO.getObject().endsWith(".svg")) {
+            if (downloadFileDTO.getIsScale() && statObjectResponse.contentType().startsWith("image/") && !downloadFileDTO.getObject().endsWith(".svg")) {
                 try {
                     //缩略图长边大小
                     double scaleWidth = downloadFileDTO.getScaleWidth();
-                    // 判断文件是否为图片文件，图片文件获取宽高，横纵比
-                    BufferedImage image = ImageIO.read(inputStream);
-                    int maxWidth = Math.max(image.getWidth(), image.getHeight());
-                    if (maxWidth > scaleWidth) {
-                        double scale = scaleWidth / maxWidth;
-                        int newWidth = (int) (image.getWidth() * scale);
-                        int newHeight = (int) (image.getHeight() * scale);
-                        BufferedImage newBI = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
-                        newBI.getGraphics().drawImage(image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH), 0, 0, null);
-                        ImageIO.write(newBI, "webp", outputStream);
-                    } else {
-                        ImageIO.write(image, "webp", outputStream);
-                    }
+                    BufferedImage newBI = scaleImage(ImageIO.read(objectResponse), scaleWidth);
+                    ImageIO.write(newBI, "webp", outputStream);
                     return;
                 } catch (Exception e) {
                     log.error("图片缩放失败，{}", e.getMessage());
-                } finally {
-                    outputStream.close();
                 }
             }
-            inputStream.transferTo(outputStream);
-            outputStream.close();
+            //视频文件允许抽帧图片输出
+            else if (downloadFileDTO.getVideoFrameNum() != null && statObjectResponse.contentType().startsWith("video/")) {
+                BufferedImage videoFrameImage = getVideoFrameImage(objectResponse, downloadFileDTO.getVideoFrameNum());
+                ImageIO.write(videoFrameImage, "webp", outputStream);
+                return;
+            } else {
+                if (hasRange) {
+                    Headers headers = objectResponse.headers();
+                    for (String name : headers.names()) {
+                        response.setHeader(name, headers.get(name));
+                    }
+                    response.setHeader("Server", "XH-Admin-File");
+                    //设置为206响应码，表示服务器支持断点下载
+                    response.setStatus(response.SC_PARTIAL_CONTENT);
+                }
+                //下载时表示总文件大小
+                if (downloadFileDTO.getDisposition().equals("attachment")) {
+                    response.setHeader("Content-Length", String.valueOf(statObjectResponse.size()));
+                }
+                response.setCharacterEncoding("UTF-8");
+                if (CommonUtil.isNotEmpty(downloadFileDTO.getFileName())) {
+                    String fileName = URLEncoder.encode(downloadFileDTO.getFileName(), StandardCharsets.UTF_8);
+                    //设置响应头中文件的下载方式为附件方式，以及设置文件名
+                    response.setHeader("Content-Disposition",
+                            "%s; filename=%s".formatted(downloadFileDTO.getDisposition(), fileName));
+                }
+                if (CommonUtil.isNotEmpty(downloadFileDTO.getContentType())) {
+                    //设置Content-Type，这样可以使用浏览器原生的文件预览功能
+                    response.setContentType(downloadFileDTO.getContentType());
+                }
+            }
+            objectResponse.transferTo(outputStream);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -268,5 +335,51 @@ public class FileOperationService extends BaseServiceImpl {
                 .endpoint(endpoint)
                 .credentials(accessKey, secretKey)
                 .build();
+    }
+
+    /**
+     * 抽取视频的指定帧图片
+     */
+    public BufferedImage getVideoFrameImage(InputStream inputStream, int frameNum) {
+        Frame frame = null;
+        try (inputStream; FFmpegFrameGrabber ff = new FFmpegFrameGrabber(inputStream)) {
+            ff.start();
+            int ftp = ff.getLengthInFrames();
+            int currentFrameNum = 0;
+            while (currentFrameNum <= ftp) {
+                ff.setFrameNumber(frameNum);
+                //获取帧
+                frame = ff.grabImage();
+                if ((currentFrameNum > frameNum) && (frame != null)) {
+                    break;
+                }
+                currentFrameNum++;
+            }
+            try (Java2DFrameConverter a = new Java2DFrameConverter()) {
+                return a.convert(frame);
+            }
+        } catch (Exception e) {
+            log.trace("视频截取帧图片失败", e);
+            throw new MyException("视频截取帧图片失败");
+        }
+    }
+
+
+    /**
+     * 对图片进行压缩， 长边压缩到指定像素，原图片长边小于压缩的像素大小时，直接返回原图片
+     */
+    public BufferedImage scaleImage(BufferedImage sourceImage, double scaleWidth) {
+        // 判断文件是否为图片文件，图片文件获取宽高，横纵比
+        int maxWidth = Math.max(sourceImage.getWidth(), sourceImage.getHeight());
+        if (maxWidth > scaleWidth) {
+            double scale = scaleWidth / maxWidth;
+            int newWidth = (int) (sourceImage.getWidth() * scale);
+            int newHeight = (int) (sourceImage.getHeight() * scale);
+            BufferedImage newBI = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+            newBI.getGraphics().drawImage(sourceImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH), 0, 0, null);
+            return newBI;
+        } else {
+            return sourceImage;
+        }
     }
 }

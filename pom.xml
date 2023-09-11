@@ -28,12 +28,16 @@
         <guava.version>32.1.1-jre</guava.version>
         <sa-token-spring-boot3-starter.version>1.35.0.RC</sa-token-spring-boot3-starter.version>
         <hutool-version>5.8.21</hutool-version>
+        <weixin-java-version>4.5.0</weixin-java-version>
+        <javacv-version>1.5.9</javacv-version>
+        <ffmpeg-platform-version>6.0-1.5.9</ffmpeg-platform-version>
     </properties>
 
     <modules>
         <module>common</module>
         <module>system</module>
         <module>file</module>
+        <module>wechat</module>
     </modules>
 
     <dependencies>
@@ -111,6 +115,11 @@
                 <version>${xh-bms.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.xh</groupId>
+                <artifactId>wechat-client</artifactId>
+                <version>${xh-bms.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>cn.dev33</groupId>
                 <artifactId>sa-token-spring-boot3-starter</artifactId>
                 <version>${sa-token-spring-boot3-starter.version}</version>
@@ -125,6 +134,16 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-http</artifactId>
                 <version>${hutool-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.binarywang</groupId>
+                <artifactId>weixin-java-miniapp</artifactId>
+                <version>${weixin-java-version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bytedeco</groupId>
+                <artifactId>javacv-platform</artifactId>
+                <version>${javacv-version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

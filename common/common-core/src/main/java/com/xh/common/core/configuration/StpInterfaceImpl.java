@@ -7,6 +7,7 @@ import com.xh.common.core.dto.OnlineUserDTO;
 import com.xh.common.core.dto.SysLoginUserInfoDTO;
 import com.xh.common.core.dto.SysMenuDTO;
 import com.xh.common.core.dto.SysOrgRoleDTO;
+import com.xh.common.core.utils.LoginUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,8 +25,9 @@ public class StpInterfaceImpl implements StpInterface {
     public List<String> getPermissionList(Object loginId, String loginType) {
         SaSession session = StpUtil.getSession();
         SaSession tokenSession = StpUtil.getTokenSession();
-        SysLoginUserInfoDTO loginUserInfoDTO = session.getModel("userInfo", SysLoginUserInfoDTO.class);
-        OnlineUserDTO onlineUser = tokenSession.getModel("userInfo", OnlineUserDTO.class);
+        SysLoginUserInfoDTO loginUserInfoDTO = session.getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
+        if(loginUserInfoDTO == null) return null;
+        OnlineUserDTO onlineUser = tokenSession.getModel(LoginUtil.SYS_USER_KEY, OnlineUserDTO.class);
         return loginUserInfoDTO.getRoleMenuMap().get(onlineUser.getRoleId()).stream().map(SysMenuDTO::getName).toList();
     }
 
@@ -35,7 +37,8 @@ public class StpInterfaceImpl implements StpInterface {
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
         SaSession session = StpUtil.getSession();
-        SysLoginUserInfoDTO loginUserInfoDTO = session.getModel("userInfo", SysLoginUserInfoDTO.class);
+        SysLoginUserInfoDTO loginUserInfoDTO = session.getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
+        if(loginUserInfoDTO == null) return null;
         List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
         return roles.stream().map(i -> i.getSysOrgId() + i.getRoleName()).toList();
     }
