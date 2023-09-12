@@ -49,8 +49,8 @@ public class SysRoleController {
 
     @SaCheckPermission("system:role:del")
     @Operation(description = "角色批量删除")
-    @DeleteMapping("/del/{ids}")
-    public RestResponse<?> del(@PathVariable String ids) {
+    @DeleteMapping("/del")
+    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
         sysRoleService.del(ids);
         return RestResponse.success();
     }

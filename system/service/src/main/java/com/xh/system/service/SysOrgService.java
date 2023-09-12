@@ -6,10 +6,12 @@ import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.system.client.entity.SysOrg;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +20,7 @@ import java.util.Map;
  * sunxh 2023/6/3
  */
 @Service
+@Slf4j
 public class SysOrgService extends BaseServiceImpl {
 
     /**
@@ -26,10 +29,10 @@ public class SysOrgService extends BaseServiceImpl {
     @Transactional(readOnly = true)
     public PageResult<SysOrg> queryOrgTree(String name) {
         WebLogs.info("机构树查询---");
-        if(CommonUtil.isEmpty(name)) {
+        if (CommonUtil.isEmpty(name)) {
             String sql = """
-                SELECT * from sys_org where deleted = 0
-                """;
+                    SELECT * from sys_org where deleted = 0
+                    """;
             List<SysOrg> list = baseJdbcDao.findList(SysOrg.class, sql);
             return new PageResult<>(list, list.size());
         }
@@ -98,12 +101,12 @@ public class SysOrgService extends BaseServiceImpl {
      * ids批量删除机构
      */
     @Transactional
-    public void del(String ids) {
-        String sql = "select * from sys_org where id in (%s)".formatted(ids);
-        List<SysOrg> list = baseJdbcDao.findList(SysOrg.class, sql);
-        for (SysOrg sysOrg : list) {
-            sysOrg.setDeleted(true);//已删除
-            baseJdbcDao.update(sysOrg);
-        }
+    public void del(List<Serializable> ids) {
+        log.info("批量删除机构--");
+        String sql = "update sys_org set deleted = 1 where id in (:ids)";
+        Map<String, Object> paramMap = new HashMap<>() {{
+            put("ids", ids);
+        }};
+        primaryNPJdbcTemplate.update(sql, paramMap);
     }
 }

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "文件操作控制器")
@@ -68,8 +69,8 @@ public class FileOperationController {
 
     @SaCheckPermission("system:file:del")
     @Operation(description = "批量删除文件")
-    @DeleteMapping("/del/{ids}")
-    public RestResponse<?> del(@PathVariable String ids) {
+    @DeleteMapping("/del")
+    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
         fileOperationService.del(ids);
         return RestResponse.success();
     }

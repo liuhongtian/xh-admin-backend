@@ -18,6 +18,7 @@ import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -36,6 +37,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -306,11 +308,15 @@ public class FileOperationService extends BaseServiceImpl {
     }
 
     /**
-     * id删除文件
+     * 批量id删除文件
      */
-    public void del(String ids) {
-        String sql = "select * from sys_file where id in (%s)".formatted(ids);
-        List<SysFile> list = baseJdbcDao.findList(SysFile.class, sql);
+    public void del(List<Serializable> ids) {
+        log.info("批量id删除文件--");
+        String sql = "select * from sys_file where id in (:ids)";
+        Map<String, Object> paramMap = new HashMap<>() {{
+            put("ids", ids);
+        }};
+        List<SysFile> list = primaryNPJdbcTemplate.query(sql, paramMap, new BeanPropertyRowMapper<>(SysFile.class));
         MinioClient minioClient = getMinioClient();
         for (SysFile sysFile : list) {
             TransactionStatus transactionStatus = platformTransactionManager.getTransaction(transactionDefinition);

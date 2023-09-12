@@ -13,6 +13,7 @@ import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "系统菜单")
@@ -55,8 +56,8 @@ public class SysMenuController {
 
     @SaCheckPermission("system:menu:del")
     @Operation(description = "菜单批量删除")
-    @DeleteMapping("/del/{ids}")
-    public RestResponse<?> del(@PathVariable String ids) {
+    @DeleteMapping("/del")
+    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
         sysMenuService.del(ids);
         return RestResponse.success();
     }

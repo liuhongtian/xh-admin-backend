@@ -95,8 +95,8 @@ public class SysUserController {
 
     @SaCheckPermission("system:user:del")
     @Operation(description = "用户批量删除")
-    @DeleteMapping("/del/{ids}")
-    public RestResponse<?> del(@PathVariable String ids) {
+    @DeleteMapping("/del")
+    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
         sysUserService.del(ids);
         return RestResponse.success();
     }
@@ -104,7 +104,7 @@ public class SysUserController {
     @SaCheckPermission("system:user:import")
     @Operation(description = "用户批量导入")
     @PostMapping("/imports")
-    public RestResponse<ArrayList<Map<String, Object>>> del(@RequestBody List<SysUser> sysUsers) {
+    public RestResponse<ArrayList<Map<String, Object>>> imports(@RequestBody List<SysUser> sysUsers) {
         return RestResponse.success(sysUserService.imports(sysUsers));
     }
 

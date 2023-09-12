@@ -13,6 +13,7 @@ import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "系统机构")
@@ -54,8 +55,8 @@ public class SysOrgController {
 
     @SaCheckPermission("system:org:del")
     @Operation(description = "机构批量删除")
-    @DeleteMapping("/del/{ids}")
-    public RestResponse<?> del(@PathVariable String ids) {
+    @DeleteMapping("/del")
+    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
         sysOrgService.del(ids);
         return RestResponse.success();
     }

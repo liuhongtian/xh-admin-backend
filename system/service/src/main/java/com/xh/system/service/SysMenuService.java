@@ -7,6 +7,7 @@ import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.system.client.entity.SysMenu;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +21,7 @@ import java.util.Map;
  * sunxh 2023/4/16
  */
 @Service
-
+@Slf4j
 public class SysMenuService extends BaseServiceImpl {
 
     /**
@@ -95,12 +96,12 @@ public class SysMenuService extends BaseServiceImpl {
      * ids批量删除菜单
      */
     @Transactional
-    public void del(String ids) {
-        String sql = "select * from sys_menu where id in (%s)".formatted(ids);
-        List<SysMenu> list = baseJdbcDao.findList(SysMenu.class, sql);
-        for (SysMenu sysMenu : list) {
-            sysMenu.setDeleted(true);//已删除
-            baseJdbcDao.update(sysMenu);
-        }
+    public void del(List<Serializable> ids) {
+        log.info("批量删除菜单--");
+        String sql = "update sys_menu set deleted = 1 where id in (:ids)";
+        Map<String, Object> paramMap = new HashMap<>(){{
+            put("ids", ids);
+        }};
+        primaryNPJdbcTemplate.update(sql, paramMap);
     }
 }

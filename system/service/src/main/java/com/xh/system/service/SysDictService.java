@@ -8,6 +8,7 @@ import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.system.client.entity.SysDictDetail;
 import com.xh.system.client.entity.SysDictType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import java.util.Map;
  * 系统数据字典service
  * sunxh 2023/4/16
  */
+@Slf4j
 @Service
 public class SysDictService extends BaseServiceImpl {
 
@@ -103,11 +105,11 @@ public class SysDictService extends BaseServiceImpl {
                 select count(1) from sys_dict_detail where deleted = 0
                 and sys_dict_type_id = '%s' and value = '%s'
                 """.formatted(sysDictDetail.getSysDictTypeId(), sysDictDetail.getValue());
-        if(sysDictDetail.getId() != null) {
+        if (sysDictDetail.getId() != null) {
             sql += " and id <> %s ".formatted(sysDictDetail.getId());
         }
         Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class);
-        if(count > 0) throw new MyException("字典key:%s重复！".formatted(sysDictDetail.getValue()));
+        if (count > 0) throw new MyException("字典key:%s重复！".formatted(sysDictDetail.getValue()));
         if (sysDictDetail.getId() == null) baseJdbcDao.insert(sysDictDetail);
         else baseJdbcDao.update(sysDictDetail);
         return sysDictDetail;
@@ -117,12 +119,12 @@ public class SysDictService extends BaseServiceImpl {
      * ids批量删除数据字典明细
      */
     @Transactional
-    public void delDetail(String ids) {
-        String sql = "select * from sys_dict_detail where id in (%s)".formatted(ids);
-        List<SysDictDetail> list = baseJdbcDao.findList(SysDictDetail.class, sql);
-        for (SysDictDetail sysDictDetail : list) {
-            sysDictDetail.setDeleted(true);//已删除
-            baseJdbcDao.update(sysDictDetail);
-        }
+    public void delDetail(List<Serializable> ids) {
+        log.info("批量删除数据字典明细--");
+        String sql = "update sys_dict_detail set deleted = 1 where id in (:ids)";
+        Map<String, Object> paramMap = new HashMap<>() {{
+            put("ids", ids);
+        }};
+        primaryNPJdbcTemplate.update(sql, paramMap);
     }
 }

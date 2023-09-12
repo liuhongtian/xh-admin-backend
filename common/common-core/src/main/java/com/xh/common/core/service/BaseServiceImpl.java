@@ -4,6 +4,7 @@ import com.xh.common.core.dao.BaseJdbcDao;
 import jakarta.annotation.Resource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Repository;
 public class BaseServiceImpl implements BaseService {
     @Resource
     protected JdbcTemplate primaryJdbcTemplate;
+    @Resource
+    protected NamedParameterJdbcTemplate primaryNPJdbcTemplate;
     @Resource
     protected BaseJdbcDao baseJdbcDao;
     @Resource

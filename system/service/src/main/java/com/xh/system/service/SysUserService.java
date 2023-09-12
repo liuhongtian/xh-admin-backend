@@ -113,13 +113,13 @@ public class SysUserService extends BaseServiceImpl {
      * ids批量删除用户
      */
     @Transactional
-    public void del(String ids) {
-        String sql = "select * from sys_user where id in (%s)".formatted(ids);
-        List<SysUser> list = baseJdbcDao.findList(SysUser.class, sql);
-        for (SysUser sysUser : list) {
-            sysUser.setDeleted(true);//已删除
-            baseJdbcDao.update(sysUser);
-        }
+    public void del(List<Serializable> ids) {
+        log.info("批量删除用户--");
+        String sql = "update sys_user set deleted = 1 where id in (:ids)";
+        Map<String, Object> paramMap = new HashMap<>() {{
+            put("ids", ids);
+        }};
+        primaryNPJdbcTemplate.update(sql, paramMap);
     }
 
     /**

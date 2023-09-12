@@ -14,6 +14,7 @@ import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "数据字典")
@@ -55,8 +56,8 @@ public class SysDictController {
 
     @SaCheckPermission("system:dict:del")
     @Operation(description = "批量数据字典删除")
-    @DeleteMapping("/detail/del/{ids}")
-    public RestResponse<?> del(@PathVariable String ids) {
+    @DeleteMapping("/detail/del")
+    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
         sysDictService.delDetail(ids);
         return RestResponse.success();
     }

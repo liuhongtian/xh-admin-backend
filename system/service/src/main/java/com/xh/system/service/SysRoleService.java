@@ -100,13 +100,13 @@ public class SysRoleService extends BaseServiceImpl {
      * ids批量删除角色
      */
     @Transactional
-    public void del(String ids) {
-        String sql = "select * from sys_role where id in (%s)".formatted(ids);
-        List<SysRole> list = baseJdbcDao.findList(SysRole.class, sql);
-        for (SysRole sysRole : list) {
-            sysRole.setDeleted(true);//已删除
-            baseJdbcDao.update(sysRole);
-        }
+    public void del(List<Serializable> ids) {
+        log.info("批量删除角色--");
+        String sql = "update sys_role set deleted = 1 where id in (:ids)";
+        Map<String, Object> paramMap = new HashMap<>(){{
+            put("ids", ids);
+        }};
+        primaryNPJdbcTemplate.update(sql, paramMap);
     }
 
     /**
