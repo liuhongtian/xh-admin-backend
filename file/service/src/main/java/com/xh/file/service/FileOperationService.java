@@ -359,7 +359,7 @@ public class FileOperationService extends BaseServiceImpl {
                 return a.convert(frame);
             }
         } catch (Exception e) {
-            log.trace("视频截取帧图片失败", e);
+            log.error("视频截取帧图片失败", e);
             throw new MyException("视频截取帧图片失败");
         }
     }

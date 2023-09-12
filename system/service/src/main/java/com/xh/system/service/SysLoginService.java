@@ -4,44 +4,70 @@ import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.captcha.CaptchaUtil;
+import cn.hutool.captcha.CircleCaptcha;
 import cn.hutool.http.Header;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
 import com.xh.common.core.dto.*;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
-import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.utils.LoginUtil;
+import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.common.core.web.RestResponse;
+import com.xh.system.client.dto.ImageCaptchaDTO;
 import com.xh.system.client.entity.SysUser;
 import com.xh.system.client.vo.LoginUserInfoVO;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.lionsoul.ip2region.xdb.Searcher;
 import org.springframework.beans.BeanUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.util.FileCopyUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class SysLoginService extends BaseServiceImpl {
-
     @Resource
     private DataSourceTransactionManager dstManager;
+
+    public static final String captchaKeyPrefix = "captcha:";
+
+    /**
+     * 生成图形验证码
+     */
+    public ImageCaptchaDTO getImageCaptcha(String captchaKey) {
+        //定义图形验证码的长、宽、验证码字符数、干扰元素个数
+        CircleCaptcha captcha = CaptchaUtil.createCircleCaptcha(100, 30, 4, 20);
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        ImageCaptchaDTO imageCaptcha = new ImageCaptchaDTO();
+        imageCaptcha.setCaptchaKey(captchaKey);
+        imageCaptcha.setImageBase64(captcha.getImageBase64Data());
+        valueOperations.set(captchaKeyPrefix + captchaKey, captcha, 2, TimeUnit.MINUTES);
+        return imageCaptcha;
+    }
 
     /**
      * 管理端用户登录
@@ -50,6 +76,8 @@ public class SysLoginService extends BaseServiceImpl {
     public LoginUserInfoVO login(HttpServletRequest request, Map<String, Object> params) {
         String username = CommonUtil.getString(params.get("username"));
         String password = CommonUtil.getString(params.get("password"));
+        String captchaKey = CommonUtil.getString(params.get("captchaKey"));
+        String captchaCode = CommonUtil.getString(params.get("captchaCode"));
 
         SaSession session = null;
         try {
@@ -59,6 +87,18 @@ public class SysLoginService extends BaseServiceImpl {
         }
         //尝试登录
         if (session == null && CommonUtil.isNotEmpty(username)) {
+
+            if (CommonUtil.isEmpty(captchaKey)) throw new MyException("非法登录");
+            if (CommonUtil.isEmpty(captchaCode)) throw new MyException("请输入图形验证码");
+
+            //验证图形验证码
+            ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+            String key = captchaKeyPrefix + captchaKey;
+            CircleCaptcha captcha = (CircleCaptcha) valueOperations.get(key);
+            if(captcha == null) throw new MyException("验证码已失效");
+            boolean verify = captcha.verify(captchaCode);
+            if (!verify) throw new MyException("验证码错误");
+
             String sql = "select * from sys_user where code = ? and enabled = 1";
             SysUser sysUser = baseJdbcDao.findBySql(SysUser.class, sql, username);
 
@@ -117,6 +157,8 @@ public class SysLoginService extends BaseServiceImpl {
             if (CommonUtil.isEmpty(ip)) {
                 ip = request.getRemoteAddr();
             }
+            String ipRegion = getIpRegion2(ip);
+
             OnlineUserDTO onlineUserDTO = new OnlineUserDTO();
             onlineUserDTO.setToken(StpUtil.getTokenValue());
             onlineUserDTO.setUserCode(sysUser.getCode());
@@ -127,6 +169,8 @@ public class SysLoginService extends BaseServiceImpl {
             onlineUserDTO.setLoginBrowser(ua.getBrowser().getName());
             onlineUserDTO.setLoginOs(ua.getOs().getName());
             onlineUserDTO.setIsMobile(ua.isMobile());
+            onlineUserDTO.setLoginAddress(ipRegion);
+
             SysOrgRoleDTO orgRole = roles.get(0); //默认当前使用角色为第一个角色
             onlineUserDTO.setOrgId(orgRole.getSysOrgId());
             onlineUserDTO.setRoleId(orgRole.getSysRoleId());
@@ -134,6 +178,8 @@ public class SysLoginService extends BaseServiceImpl {
             onlineUserDTO.setRoleName(orgRole.getRoleName());
             onlineUserDTO.setLoginTime(LocalDateTime.now());
             StpUtil.getTokenSession().set(LoginUtil.SYS_USER_KEY, onlineUserDTO);
+            //登录成功后删除验证码
+            redisTemplate.delete(key);
         }
         return getCurrentLoginUserVO();
     }
@@ -303,6 +349,32 @@ public class SysLoginService extends BaseServiceImpl {
             return loginUserInfo;
         } catch (NotLoginException e) {
             return null;
+        }
+    }
+
+
+    public String getIpRegion2(String ip) {
+        // 1、创建 searcher 对象
+        String dbPath = "/ip2region.xdb";
+        try (
+                InputStream inputStream = new ClassPathResource(dbPath).getInputStream();
+                MySearcher searcher = MySearcher.newWithBuffer(FileCopyUtils.copyToByteArray(inputStream))
+        ) {
+            return searcher.search(ip).replaceAll("\\|", "").replaceAll("0", "");
+        } catch (Exception e) {
+            log.error("解析ip属地异常", e);
+            return "";
+        }
+    }
+
+
+    static class MySearcher extends Searcher implements AutoCloseable {
+        public MySearcher(String dbFile, byte[] vectorIndex, byte[] cBuff) throws IOException {
+            super(dbFile, vectorIndex, cBuff);
+        }
+
+        public static MySearcher newWithBuffer(byte[] cBuff) throws IOException {
+            return new MySearcher((String) null, (byte[]) null, cBuff);
         }
     }
 }

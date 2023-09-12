@@ -7,6 +7,7 @@ import com.xh.common.core.dto.OnlineUserDTO;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.common.core.web.RestResponse;
+import com.xh.system.client.dto.ImageCaptchaDTO;
 import com.xh.system.client.dto.SysUserJobDTO;
 import com.xh.system.client.entity.SysUser;
 import com.xh.system.client.entity.SysUserGroup;
@@ -21,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +35,13 @@ public class SysUserController {
     private SysLoginService sysLoginService;
     @Resource
     private SysUserService sysUserService;
+
+    @SaIgnore
+    @Operation(description = "获取图形验证码")
+    @GetMapping("/captcha")
+    public RestResponse<ImageCaptchaDTO> getImageCaptcha(String captchaKey) {
+        return RestResponse.success(sysLoginService.getImageCaptcha(captchaKey));
+    }
 
     @SaIgnore
     @Operation(description = "web管理系统登录")
@@ -90,6 +99,13 @@ public class SysUserController {
     public RestResponse<?> del(@PathVariable String ids) {
         sysUserService.del(ids);
         return RestResponse.success();
+    }
+
+    @SaCheckPermission("system:user:import")
+    @Operation(description = "用户批量导入")
+    @PostMapping("/imports")
+    public RestResponse<ArrayList<Map<String, Object>>> del(@RequestBody List<SysUser> sysUsers) {
+        return RestResponse.success(sysUserService.imports(sysUsers));
     }
 
     @SaCheckPermission("system:userGroup")

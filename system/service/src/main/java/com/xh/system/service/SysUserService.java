@@ -12,9 +12,11 @@ import com.xh.system.client.entity.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -118,6 +120,33 @@ public class SysUserService extends BaseServiceImpl {
             sysUser.setDeleted(true);//已删除
             baseJdbcDao.update(sysUser);
         }
+    }
+
+    /**
+     * 用户批量导入
+     */
+    @Transactional
+    public ArrayList<Map<String, Object>> imports(List<SysUser> sysUsers) {
+        WebLogs.getLogger().info("用户批量导入---");
+        ArrayList<Map<String, Object>> res = new ArrayList<>();
+        for (int i = 0; i < sysUsers.size(); i++) {
+            try {
+                SysUser sysUser = sysUsers.get(i);
+                sysUser.setEnabled(true);
+                save(sysUser);
+            } catch (MyException e) {
+                Map<String, Object> resMap = new HashMap<>();
+                resMap.put("num", i + 1);
+                resMap.put("error", e.getMessage());
+                res.add(resMap);
+            }
+        }
+        //有错误信息直接手动回滚整个事务
+        if (res.size() > 0) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return res;
+        }
+        return null;
     }
 
     /**
