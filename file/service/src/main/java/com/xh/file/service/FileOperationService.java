@@ -1,6 +1,5 @@
 package com.xh.file.service;
 
-import cn.dev33.satoken.annotation.SaIgnore;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.WebLogs;
@@ -156,7 +155,6 @@ public class FileOperationService extends BaseServiceImpl {
     /**
      * 文件下载，支持断点下载，图片压缩缩略图，视频文件抽帧
      */
-    @SaIgnore
     @Transactional
     public void downloadFile(DownloadFileDTO downloadFileDTO, String range, HttpServletResponse response) {
         long startByte = 0L;

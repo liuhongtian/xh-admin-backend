@@ -50,7 +50,6 @@ public class SysUserController {
         return RestResponse.success(sysLoginService.login(request, params));
     }
 
-    @SaIgnore
     @Operation(description = "web管理系统角色切换")
     @PostMapping("/switchUserRole")
     public RestResponse<LoginUserInfoVO> switchUserRole(@RequestBody Map<String, Object> params) {

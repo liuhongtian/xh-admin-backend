@@ -1,7 +1,6 @@
 package com.xh.file.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.annotation.SaMode;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
@@ -38,7 +37,6 @@ public class FileOperationController {
         return RestResponse.success(sysFile);
     }
 
-    @SaIgnore
     @Operation(description = "文件下载（图片预览）")
     @GetMapping("/download")
     public void downloadFile(DownloadFileDTO downloadFileDTO, @RequestHeader(value = "Range", defaultValue = "") String range, HttpServletResponse response) {

@@ -2,6 +2,7 @@ package com.xh.common.core.configuration;
 
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
@@ -9,11 +10,18 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -24,7 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * spring mvc配置类
+ * web配置类
  * sunxh 2023/2/26
  */
 @Configuration(proxyBeanMethods = false)
@@ -56,7 +64,7 @@ public class WebConfig implements WebMvcConfigurer {
         // 注册 Sa-Token 拦截器，打开注解式鉴权功能
         registry.addInterceptor(
                         new SaInterceptor(handle -> {
-                            if(handle instanceof HandlerMethod){
+                            if (handle instanceof HandlerMethod) {
                                 StpUtil.checkLogin();
                             }
                         })
@@ -69,14 +77,20 @@ public class WebConfig implements WebMvcConfigurer {
                 ).order(5);
     }
 
-    /**
-     * 定义全局默认时间序列化
-     */
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        // 在头部添加，优先级别最高
+        converters.add(0, new MappingJackson2HttpMessageConverter(getDefaultObjectMapper()));
+    }
+
+
     private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
 
-    @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+    /**
+     * 定义全局默认时间序列化
+     */
+    public static ObjectMapper getDefaultObjectMapper() {
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder()
                 .indentOutput(true)
                 .dateFormat(new SimpleDateFormat("yyyy-MM-dd"))
@@ -86,7 +100,28 @@ public class WebConfig implements WebMvcConfigurer {
                 .deserializers(new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)))
                 .deserializers(new LocalDateDeserializer(DateTimeFormatter.ofPattern(DATE_FORMAT)))
                 .modulesToInstall(new ParameterNamesModule());
-        // 在头部添加，优先级别最高
-        converters.add(0, new MappingJackson2HttpMessageConverter(builder.build()));
+        return builder.build();
+    }
+
+    /**
+     * 通用跨服务用WebClientBuilder，携带鉴权token，设置序列化内容，默认启用负载均衡
+     */
+    @Bean(name = "myWebClientBuilder")
+    @Scope("prototype")
+    @LoadBalanced
+    WebClient.Builder getMyWebClientBuilder() {
+        return WebClient.builder()
+                //过滤器重构请求，携带鉴权token
+                .filter((request, next) -> {
+                    final ClientRequest.Builder req = ClientRequest.from(request);
+                    req.header(StpUtil.getTokenName(), StpUtil.getTokenValue());
+                    return next.exchange(req.build());
+                })
+                //序列化配置
+                .exchangeStrategies(ExchangeStrategies.builder()
+                        .codecs(configurer -> configurer.defaultCodecs().jackson2JsonDecoder(
+                                new Jackson2JsonDecoder(WebConfig.getDefaultObjectMapper())
+                        )).build()
+                );
     }
 }
