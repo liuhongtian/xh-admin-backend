@@ -97,23 +97,25 @@ public class FileOperationService extends BaseServiceImpl {
             sysFile.setSuffix(suffix);
             sysFile.setContentType(multipartFile.getContentType());
             sysFile.setName(filename);
-            try (InputStream inputStream = multipartFile.getInputStream()) {
-                // 判断文件是否为图片文件，图片文件获取宽高，横纵比
-                BufferedImage image = ImageIO.read(inputStream);
-                sysFile.setImgWidth(image.getWidth());
-                sysFile.setImgHeight(image.getHeight());
-                sysFile.setImgRatio(image.getWidth() / new BigDecimal(image.getHeight()).doubleValue());
-            } catch (Exception e) {
-                log.info("非图片文件");
-            }
+            // 判断文件是否为图片文件，图片文件获取宽高，横纵比
+            if (sysFile.getContentType().startsWith("image/")) {
+                try (InputStream inputStream = multipartFile.getInputStream()) {
 
+                    BufferedImage image = ImageIO.read(inputStream);
+                    sysFile.setImgWidth(image.getWidth());
+                    sysFile.setImgHeight(image.getHeight());
+                    sysFile.setImgRatio(image.getWidth() / new BigDecimal(image.getHeight()).doubleValue());
+                } catch (Exception e) {
+                    log.info("非图片文件");
+                }
+            }
 
             //如果是视频文件，抽第十帧为视频缩略图，长边压缩至40像素
             if (sysFile.getContentType().startsWith("video/")) {
                 try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
                     BufferedImage videoFrameImage = getVideoFrameImage(multipartFile.getInputStream(), 10);
-//                    //压缩
-//                    videoFrameImage = scaleImage(videoFrameImage, 200);
+                    //压缩
+                    videoFrameImage = scaleImage(videoFrameImage, 200);
 
                     ImageIO.write(videoFrameImage, "jpg", stream);
                     try (InputStream inputStream = new ByteArrayInputStream(stream.toByteArray())) {
