@@ -347,23 +347,22 @@ public class FileOperationService extends BaseServiceImpl {
      * 抽取视频的指定帧图片
      */
     public BufferedImage getVideoFrameImage(InputStream inputStream, int frameNum) {
-        Frame frame = null;
         try (inputStream; FFmpegFrameGrabber ff = new FFmpegFrameGrabber(inputStream)) {
             ff.start();
             int ftp = ff.getLengthInFrames();
             int currentFrameNum = 0;
             while (currentFrameNum <= ftp) {
-                ff.setFrameNumber(frameNum);
                 //获取帧
-                frame = ff.grabImage();
-                if ((currentFrameNum > frameNum) && (frame != null)) {
-                    break;
+                try (Frame frame = ff.grabImage()) {
+                    if ((currentFrameNum > frameNum) && (frame != null)) {
+                        try (Java2DFrameConverter a = new Java2DFrameConverter()) {
+                            return a.convert(frame);
+                        }
+                    }
                 }
                 currentFrameNum++;
             }
-            try (Java2DFrameConverter a = new Java2DFrameConverter()) {
-                return a.convert(frame);
-            }
+            return null;
         } catch (Exception e) {
             log.error("视频截取帧图片失败", e);
             throw new MyException("视频截取帧图片失败");
