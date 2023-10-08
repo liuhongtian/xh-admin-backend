@@ -85,7 +85,6 @@ public class FileOperationService extends BaseServiceImpl {
             }
             String filename = multipartFile.getOriginalFilename();
             DateTimeFormatter yyyyMMdd = DateTimeFormatter.ofPattern("yyyyMMdd");
-            multipartFile.getOriginalFilename();
             String uuid = UUID.randomUUID().toString().replaceAll("-", "");
             String date = yyyyMMdd.format(LocalDateTime.now());
             //文件后缀名
@@ -130,7 +129,7 @@ public class FileOperationService extends BaseServiceImpl {
                         sysFile.setPreviewImageFileId(previewFile.getId());
                     }
                 } catch (Exception e) {
-                    log.info("抽帧失败");
+                    log.error("抽帧失败", e);
                 }
             }
             sysFile.setStatus(1);
@@ -347,16 +346,18 @@ public class FileOperationService extends BaseServiceImpl {
      * 抽取视频的指定帧图片
      */
     public BufferedImage getVideoFrameImage(InputStream inputStream, int frameNum) {
-        try (inputStream; FFmpegFrameGrabber ff = new FFmpegFrameGrabber(inputStream)) {
-            ff.start();
-            int ftp = ff.getLengthInFrames();
+        try (inputStream; FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputStream)) {
+            grabber.start();
+            int ftp = grabber.getLengthInFrames();
             int currentFrameNum = 0;
             while (currentFrameNum <= ftp) {
                 //获取帧
-                try (Frame frame = ff.grabImage()) {
+                try (Frame frame = grabber.grabImage()) {
                     if ((currentFrameNum > frameNum) && (frame != null)) {
                         try (Java2DFrameConverter a = new Java2DFrameConverter()) {
-                            return a.convert(frame);
+                            BufferedImage image = a.convert(frame);
+                            grabber.stop();
+                            return image;
                         }
                     }
                 }
@@ -366,6 +367,8 @@ public class FileOperationService extends BaseServiceImpl {
         } catch (Exception e) {
             log.error("视频截取帧图片失败", e);
             throw new MyException("视频截取帧图片失败");
+        } finally {
+            System.gc();
         }
     }
 

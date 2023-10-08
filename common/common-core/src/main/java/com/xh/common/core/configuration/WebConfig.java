@@ -66,14 +66,17 @@ public class WebConfig implements WebMvcConfigurer {
                         new SaInterceptor(handle -> {
                             if (handle instanceof HandlerMethod) {
                                 StpUtil.checkLogin();
+                                //续签token
+                                StpUtil.updateLastActiveToNow();
                             }
                         })
                 )
                 .addPathPatterns("/**")
                 .excludePathPatterns(
                         "/swagger-ui.html",
+                        "/swagger-ui.html/**",
                         "/swagger-ui/**",
-                        "/v3/api-docs"
+                        "/v3/**"
                 ).order(5);
     }
 

@@ -108,7 +108,7 @@ public class CommonUtil {
         try(inputStream) {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
             byte[] buffer = new byte[1024 * 1024 * 10];
-            int len = 0;
+            int len;
             while ((len = inputStream.read(buffer)) > 0) {
                 digest.update(buffer, 0, len);
             }

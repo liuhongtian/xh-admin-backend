@@ -25,6 +25,7 @@ public class MyControllerAdvice {
         return response;
     }
 
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(SaTokenException.class)
     public RestResponse<?> handlerSaTokenException(SaTokenException e) {
         RestResponse<?> res = RestResponse.error("服务器繁忙，请稍后重试...");

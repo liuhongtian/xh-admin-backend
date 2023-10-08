@@ -1,5 +1,6 @@
 package com.xh.common.core.web;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,20 +17,21 @@ import java.util.List;
 @Setter
 @Getter
 @NoArgsConstructor
+@Schema(title = "分页结果")
 public class PageResult<T> implements Serializable {
-    //列表数据
+    @Schema(title = "列表数据")
     private List<T> list = new ArrayList<>();
 
-    //总数
+    @Schema(title = "总数")
     private Integer total = 0;
 
-    //是否分页
+    @Schema(title = "是否分页")
     private Boolean isPage;
 
-    //分页号
+    @Schema(title = "分页号")
     private Integer currentPage;
 
-    //分页大小
+    @Schema(title = "分页大小")
     private Integer pageSize;
 
     public PageResult(List<T> list, Integer total) {

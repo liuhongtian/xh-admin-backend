@@ -1,20 +1,22 @@
 package com.xh.common.core.web;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
 
-@Tag(name = "RestResponse")
+@Schema(title = "通用响应对象")
 @Data
 public class RestResponse<T> implements Serializable {
 
-
-    private Integer httpCode; //http状态码
-    private String status; //响应消息状态：success, error, warning, info
-    private String message;//响应的消息内容
-    private T data;//响应的数据
+    @Schema(title = "http状态码", description = "正确响应码为200")
+    private Integer httpCode;
+    @Schema(title = "响应消息状态", allowableValues = {"success", "error", "warning", "info"})
+    private String status;
+    @Schema(title = "响应的消息内容")
+    private String message;
+    private T data;
 
     /**
      * 响应成功信息

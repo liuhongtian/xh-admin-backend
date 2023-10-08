@@ -9,11 +9,11 @@ import com.xh.file.client.dto.DownloadFileDTO;
 import com.xh.file.client.entity.SysFile;
 import com.xh.file.service.FileOperationService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,8 +31,8 @@ public class FileOperationController {
     private FileOperationService fileOperationService;
 
     @Operation(description = "文件上传")
-    @PostMapping("/upload")
-    public RestResponse<SysFile> uploadFile(@Schema(type = "blob") @RequestParam("file") MultipartFile file) {
+    @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public RestResponse<SysFile> uploadFile(@RequestParam("file") MultipartFile file) {
         SysFile sysFile = fileOperationService.uploadFile(file);
         return RestResponse.success(sysFile);
     }
