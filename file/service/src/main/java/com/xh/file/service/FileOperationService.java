@@ -356,7 +356,9 @@ public class FileOperationService extends BaseServiceImpl {
                     if ((currentFrameNum > frameNum) && (frame != null)) {
                         try (Java2DFrameConverter a = new Java2DFrameConverter()) {
                             BufferedImage image = a.convert(frame);
+                            frame.close();
                             grabber.stop();
+                            grabber.release();
                             return image;
                         }
                     }
