@@ -73,7 +73,7 @@ public class FileOperationService extends BaseServiceImpl {
             String sha1 = CommonUtil.getFileSha1(multipartFile.getInputStream());
             String sql2 = "delete from sys_file where sha1 = ? and status = 4";
             primaryJdbcTemplate.update(sql2, sha1);
-            String sql = "select * from sys_file where sha1 = ?";
+            String sql = "select * from sys_file where sha1 = ? and deleted = 0 and status != 4";
             //利用sha1判断文件是否一致，sha1查询文件是否已上传过，已上传则节省空间直接返回sysFile对象
             SysFile sysFile = baseJdbcDao.findBySql(SysFile.class, sql, sha1);
             if (sysFile != null) return sysFile;
@@ -128,6 +128,8 @@ public class FileOperationService extends BaseServiceImpl {
                         SysFile previewFile = uploadFile(mockMultipartFile);
                         sysFile.setPreviewImageFileId(previewFile.getId());
                     }
+                } catch (MyException e) {
+                    throw e;
                 } catch (Exception e) {
                     log.error("抽帧失败", e);
                 }
@@ -147,7 +149,7 @@ public class FileOperationService extends BaseServiceImpl {
                                 .build()
                 );
             } catch (Exception e) {
-                throw new MyException(e);
+                throw new MyException("文件上传失败：%s".formatted(e.getMessage()));
             }
             return sysFile;
         } catch (MyException e) {
