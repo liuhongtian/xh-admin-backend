@@ -146,8 +146,12 @@ public class FileOperationService extends BaseServiceImpl {
                                 .stream(inputStream, multipartFile.getSize(), -1)
                                 .build()
                 );
+            } catch (Exception e) {
+                throw new MyException(e);
             }
             return sysFile;
+        } catch (MyException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
