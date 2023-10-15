@@ -31,6 +31,7 @@
         <weixin-java-version>4.5.0</weixin-java-version>
         <javacv-version>1.5.9</javacv-version>
         <ip2region-version>2.7.0</ip2region-version>
+        <xxl-job-version>2.4.0</xxl-job-version>
     </properties>
 
     <modules>
@@ -40,6 +41,14 @@
     </modules>
 
     <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -155,6 +164,12 @@
                 <groupId>org.lionsoul</groupId>
                 <artifactId>ip2region</artifactId>
                 <version>${ip2region-version}</version>
+            </dependency>
+            <!-- 官方文档地址 https://www.xuxueli.com/xxl-job -->
+            <dependency>
+                <groupId>com.xuxueli</groupId>
+                <artifactId>xxl-job-core</artifactId>
+                <version>${xxl-job-version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

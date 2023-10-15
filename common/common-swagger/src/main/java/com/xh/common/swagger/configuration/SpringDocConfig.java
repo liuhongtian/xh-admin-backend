@@ -8,14 +8,11 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * 配置swagger
  * sunxh 2023/10/7
  */
-@Configuration
-
 public class SpringDocConfig {
     @Value("${sys.auth.tokenHeaderName}")
     private String tokenHeaderName;
