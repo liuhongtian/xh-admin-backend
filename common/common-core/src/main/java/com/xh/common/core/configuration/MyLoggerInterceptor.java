@@ -34,8 +34,9 @@ public class MyLoggerInterceptor extends BaseServiceImpl implements HandlerInter
     @Override
     public boolean preHandle(HttpServletRequest request, @Nonnull HttpServletResponse response, @Nonnull Object handler) {
         //自动程序跨服务，无法获取登录用户，直接登录为自动程序用户
-        String feignValue = request.getParameter(Constant.AUTO_FEIGN_KEY);
+        String feignValue = request.getHeader(Constant.AUTO_FEIGN_KEY);
         if(CommonUtil.isNotEmpty(feignValue)) {
+            log.info("自动程序跨服务", feignValue);
             StpUtil.login(feignValue, "auto-job");
         }
         //对于无法添加header但需要鉴权的请求可以将token放在参数中，手动从请求中获取token设置
