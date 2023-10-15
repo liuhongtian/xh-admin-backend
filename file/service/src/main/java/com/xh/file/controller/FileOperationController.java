@@ -65,7 +65,6 @@ public class FileOperationController {
         return RestResponse.success(fileOperationService.getById(id));
     }
 
-    @SaCheckPermission("system:file:del")
     @Operation(description = "批量删除文件")
     @DeleteMapping("/del")
     public RestResponse<?> del(@RequestParam List<Serializable> ids) {

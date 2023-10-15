@@ -1,5 +1,6 @@
 package com.xh.common.core.configuration;
 
+import cn.dev33.satoken.exception.NotWebContextException;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,6 +9,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import com.xh.common.core.Constant;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -117,7 +119,12 @@ public class WebConfig implements WebMvcConfigurer {
                 //过滤器重构请求，携带鉴权token
                 .filter((request, next) -> {
                     final ClientRequest.Builder req = ClientRequest.from(request);
-                    req.header(StpUtil.getTokenName(), StpUtil.getTokenValue());
+                    try {
+                        req.header(StpUtil.getTokenName(), StpUtil.getTokenValue());
+                    } catch (NotWebContextException e) {
+                        //非web环境则传输一个固定字符串，标识自动程序执行跨服务
+                        req.header(Constant.AUTO_FEIGN_KEY, "自动程序跨服务");
+                    }
                     return next.exchange(req.build());
                 })
                 //序列化配置
