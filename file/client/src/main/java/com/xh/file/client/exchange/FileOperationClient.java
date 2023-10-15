@@ -16,7 +16,6 @@ import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -45,5 +44,5 @@ public interface FileOperationClient {
 
     @Operation(description = "批量删除文件")
     @DeleteExchange("/del")
-    RestResponse<?> del(@RequestParam List<Serializable> ids);
+    RestResponse<?> del(@RequestParam List<String> ids);
 }
