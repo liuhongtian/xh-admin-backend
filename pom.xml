@@ -21,7 +21,6 @@
         <!--    基础版本    -->
         <xh-bms.version>0.0.1-SNAPSHOT</xh-bms.version>
         <spring-cloud.version>2022.0.4</spring-cloud.version>
-        <!--   这个是预发布版本     -->
         <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
         <minio.version>8.5.4</minio.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.2.0</springdoc-openapi-starter-webmvc-ui.version>
@@ -110,6 +109,11 @@
             <dependency>
                 <groupId>com.xh</groupId>
                 <artifactId>common-swagger</artifactId>
+                <version>${xh-bms.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.xh</groupId>
+                <artifactId>common-xxljob</artifactId>
                 <version>${xh-bms.version}</version>
             </dependency>
             <dependency>
