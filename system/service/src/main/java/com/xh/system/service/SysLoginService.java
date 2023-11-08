@@ -77,6 +77,8 @@ public class SysLoginService extends BaseServiceImpl {
         String password = CommonUtil.getString(params.get("password"));
         String captchaKey = CommonUtil.getString(params.get("captchaKey"));
         String captchaCode = CommonUtil.getString(params.get("captchaCode"));
+        String locale = CommonUtil.getString(params.get("locale"));
+        String localeLabel = CommonUtil.getString(params.get("localeLabel"));
 
         SaSession session = null;
         try {
@@ -94,7 +96,7 @@ public class SysLoginService extends BaseServiceImpl {
             ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
             String key = captchaKeyPrefix + captchaKey;
             CircleCaptcha captcha = (CircleCaptcha) valueOperations.get(key);
-            if(captcha == null) throw new MyException("验证码已失效");
+            if (captcha == null) throw new MyException("验证码已失效");
             boolean verify = captcha.verify(captchaCode);
             if (!verify) throw new MyException("验证码错误");
 
@@ -169,6 +171,8 @@ public class SysLoginService extends BaseServiceImpl {
             onlineUserDTO.setLoginOs(ua.getOs().getName());
             onlineUserDTO.setIsMobile(ua.isMobile());
             onlineUserDTO.setLoginAddress(ipRegion);
+            onlineUserDTO.setLocale(locale);
+            onlineUserDTO.setLocaleLabel(localeLabel);
 
             SysOrgRoleDTO orgRole = roles.get(0); //默认当前使用角色为第一个角色
             onlineUserDTO.setOrgId(orgRole.getSysOrgId());
@@ -192,6 +196,7 @@ public class SysLoginService extends BaseServiceImpl {
         SysLoginUserInfoDTO loginUserInfoDTO = StpUtil.getSession().getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
         List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
         for (SysOrgRoleDTO orgRole : roles) {
+            //从当前登录用户session中寻找匹配的角色，并设置当前角色，机构，及名称
             if (Objects.equals(orgRole.getSysOrgId().toString(), orgId) && Objects.equals(orgRole.getSysRoleId().toString(), roleId)) {
                 SaSession tokenSession = StpUtil.getTokenSession();
                 OnlineUserDTO onlineUserDTO = tokenSession.getModel(LoginUtil.SYS_USER_KEY, OnlineUserDTO.class);
@@ -204,6 +209,19 @@ public class SysLoginService extends BaseServiceImpl {
             }
         }
         throw new MyException("角色切换异常，请重新登录后操作！");
+    }
+
+    /**
+     * 语言切换
+     */
+    public void switchLocale(Map<String, Object> params) {
+        String locale = CommonUtil.getString(params.get("locale"));
+        String localeLabel = CommonUtil.getString(params.get("localeLabel"));
+        SaSession tokenSession = StpUtil.getTokenSession();
+        OnlineUserDTO onlineUserDTO = tokenSession.getModel(LoginUtil.SYS_USER_KEY, OnlineUserDTO.class);
+        onlineUserDTO.setLocale(locale);
+        onlineUserDTO.setLocaleLabel(localeLabel);
+        tokenSession.set(LoginUtil.SYS_USER_KEY, onlineUserDTO);
     }
 
     /**
@@ -304,6 +322,9 @@ public class SysLoginService extends BaseServiceImpl {
                 """;
         List<SysOrgRoleDTO> roles = baseJdbcDao.findList(SysOrgRoleDTO.class, sql, userId, userId);
         String roleIds = roles.stream().map(i -> i.getSysRoleId().toString()).collect(Collectors.joining(","));
+        if (roleIds.isEmpty()) {
+            throw new MyException("该用户未分配角色，无法登录!");
+        }
         String sql2 = """
                     select
                          a.sys_role_id role_id,b.*

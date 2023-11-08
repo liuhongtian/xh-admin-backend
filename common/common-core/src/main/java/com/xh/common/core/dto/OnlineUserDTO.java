@@ -34,6 +34,10 @@ public class OnlineUserDTO implements Serializable {
     private String loginOs;
     @Schema(title = "是否手机端")
     private Boolean isMobile;
+    @Schema(title = "当前语言")
+    private String locale;
+    @Schema(title = "当前语言名称")
+    private String localeLabel;
     @Schema(title = "当前机构ID")
     private Integer orgId;
     @Schema(title = "当前角色ID")

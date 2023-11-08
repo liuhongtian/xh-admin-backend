@@ -56,6 +56,13 @@ public class SysUserController {
         return RestResponse.success(sysLoginService.switchUserRole(params));
     }
 
+    @Operation(description = "切换语言")
+    @PostMapping("/switchLocale")
+    public RestResponse<?> switchLocale(@RequestBody Map<String, Object> params) {
+        sysLoginService.switchLocale(params);
+        return RestResponse.success();
+    }
+
     @Operation(description = "web管理系统注销")
     @PostMapping("/logout")
     public RestResponse<?> login() {
