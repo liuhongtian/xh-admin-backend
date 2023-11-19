@@ -2,7 +2,6 @@ package com.xh.system.service;
 
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
-import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.system.client.entity.SysOrg;
@@ -28,7 +27,6 @@ public class SysOrgService extends BaseServiceImpl {
      */
     @Transactional(readOnly = true)
     public PageResult<SysOrg> queryOrgTree(String name) {
-        WebLogs.info("机构树查询---");
         if (CommonUtil.isEmpty(name)) {
             String sql = """
                     SELECT * from sys_org where deleted = 0
@@ -54,7 +52,6 @@ public class SysOrgService extends BaseServiceImpl {
      */
     @Transactional(readOnly = true)
     public PageResult<SysOrg> query(PageQuery<Map<String, Object>> pageQuery) {
-        WebLogs.info("机构列表查询---");
         Map<String, Object> param = pageQuery.getParam();
         String sql = """
                 select a.*, b.name parent_name from sys_org a
@@ -83,7 +80,6 @@ public class SysOrgService extends BaseServiceImpl {
 
     @Transactional
     public SysOrg save(SysOrg sysOrg) {
-        WebLogs.getLogger().info("机构保存---");
         if (sysOrg.getId() == null) baseJdbcDao.insert(sysOrg);
         else baseJdbcDao.update(sysOrg);
         return sysOrg;

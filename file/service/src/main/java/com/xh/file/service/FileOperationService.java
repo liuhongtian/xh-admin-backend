@@ -2,7 +2,6 @@ package com.xh.file.service;
 
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
-import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
@@ -128,8 +127,6 @@ public class FileOperationService extends BaseServiceImpl {
                         SysFile previewFile = uploadFile(mockMultipartFile);
                         sysFile.setPreviewImageFileId(previewFile.getId());
                     }
-                } catch (MyException e) {
-                    throw e;
                 } catch (Exception e) {
                     log.error("抽帧失败", e);
                 }
@@ -264,7 +261,6 @@ public class FileOperationService extends BaseServiceImpl {
      */
     @Transactional(readOnly = true)
     public PageResult<SysFile> query(PageQuery<Map<String, Object>> pageQuery) {
-        WebLogs.info("文件列表查询---");
         Map<String, Object> param = pageQuery.getParam();
         String sql = "select * from sys_file where status <> 4 ";
         if (CommonUtil.isNotEmpty(param.get("object"))) {
@@ -298,7 +294,6 @@ public class FileOperationService extends BaseServiceImpl {
 
     @Transactional
     public SysFile save(SysFile sysFile) {
-        WebLogs.getLogger().info("文件保存---");
         if (sysFile.getId() == null) baseJdbcDao.insert(sysFile);
         else baseJdbcDao.update(sysFile);
         return sysFile;

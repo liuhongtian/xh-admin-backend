@@ -12,5 +12,6 @@ public class MyException extends RuntimeException {
 
     public MyException(Throwable e) {
         super(e);
+        e.printStackTrace();
     }
 }

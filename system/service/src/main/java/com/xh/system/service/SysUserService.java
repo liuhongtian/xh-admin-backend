@@ -3,7 +3,6 @@ package com.xh.system.service;
 import cn.dev33.satoken.secure.BCrypt;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
-import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
@@ -29,7 +28,6 @@ public class SysUserService extends BaseServiceImpl {
      */
     @Transactional(readOnly = true)
     public PageResult<SysUser> query(PageQuery<Map<String, Object>> pageQuery) {
-        WebLogs.info("用户列表查询---");
         Map<String, Object> param = pageQuery.getParam();
         String sql = "select * from sys_user where deleted = 0 ";
         if (CommonUtil.isNotEmpty(param.get("code"))) {
@@ -53,7 +51,6 @@ public class SysUserService extends BaseServiceImpl {
      */
     @Transactional
     public void switchMenuProp(Map<String, Object> param) {
-        WebLogs.info("切换用户字段值---", param);
         Object id = param.get("id");
         Object prop = param.get("prop");
         Object value = param.get("value");
@@ -68,7 +65,6 @@ public class SysUserService extends BaseServiceImpl {
      */
     @Transactional
     public SysUser save(SysUser sysUser) {
-        WebLogs.getLogger().info("用户保存---");
         String sql = "select count(1) from sys_user where deleted = 0 and code = ? ";
         if (sysUser.getId() != null) sql += " and id <> " + sysUser.getId();
         Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class, sysUser.getCode());
@@ -127,7 +123,6 @@ public class SysUserService extends BaseServiceImpl {
      */
     @Transactional
     public ArrayList<Map<String, Object>> imports(List<SysUser> sysUsers) {
-        WebLogs.getLogger().info("用户批量导入---");
         ArrayList<Map<String, Object>> res = new ArrayList<>();
         for (int i = 0; i < sysUsers.size(); i++) {
             try {
@@ -154,7 +149,6 @@ public class SysUserService extends BaseServiceImpl {
      */
     @Transactional(readOnly = true)
     public PageResult<SysUserGroup> queryUserGroupList(PageQuery<Map<String, Object>> pageQuery) {
-        WebLogs.info("用户组列表查询---");
         Map<String, Object> param = pageQuery.getParam();
         String sql = "select * from sys_user_group where deleted = 0 ";
         if (CommonUtil.isNotEmpty(param.get("code"))) {
@@ -175,8 +169,6 @@ public class SysUserService extends BaseServiceImpl {
      */
     @Transactional
     public SysUserGroup saveUserGroup(SysUserGroup sysUserGroup) {
-        WebLogs.getLogger().info("用户组保存---");
-
         String sql = "select count(1) from sys_user_group where deleted = 0 and name = ? ";
         if (sysUserGroup.getId() != null) sql += " and id <> " + sysUserGroup.getId();
         Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class, sysUserGroup.getName());

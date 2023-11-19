@@ -2,7 +2,6 @@ package com.xh.system.service;
 
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
-import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.system.client.entity.SysMenu;
@@ -31,7 +30,6 @@ public class SysRoleService extends BaseServiceImpl {
      */
     @Transactional(readOnly = true)
     public PageResult<SysRole> query(PageQuery<Map<String, Object>> pageQuery) {
-        WebLogs.info("角色列表查询---");
         Map<String, Object> param = pageQuery.getParam();
         String sql = "select * from sys_role where deleted = 0 ";
         if (CommonUtil.isNotEmpty(param.get("name"))) {
@@ -49,7 +47,6 @@ public class SysRoleService extends BaseServiceImpl {
 
     @Transactional
     public SysRole save(SysRole sysRole) {
-        WebLogs.getLogger().info("角色保存---");
         if (sysRole.getId() == null) {
             baseJdbcDao.insert(sysRole);
         } else {

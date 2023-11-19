@@ -237,7 +237,6 @@ public class SysLoginService extends BaseServiceImpl {
      */
     public PageResult<OnlineUserDTO> queryOnlineUser(PageQuery<Map<String, Object>> pageQuery) {
         final Map<String, Object> param = pageQuery.getParam();
-        WebLogs.debug("在线用户查询---");
         // 查询所有已登录的 Token
         List<String> tokens = StpUtil.searchTokenValue("", 0, -1, false);
         List<OnlineUserDTO> onlineUserList = tokens.stream()

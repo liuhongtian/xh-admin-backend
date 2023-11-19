@@ -2,7 +2,6 @@ package com.xh.system.service;
 
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
-import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
@@ -30,7 +29,6 @@ public class SysDictService extends BaseServiceImpl {
      */
     @Transactional(readOnly = true)
     public PageResult<SysDictType> queryTypes(PageQuery<Map<String, Object>> pageQuery) {
-        WebLogs.info("数据字典类型查询---");
         Map<String, Object> param = pageQuery.getParam();
         if (param == null) param = new HashMap<>();
         String sql = "select * from sys_dict_type where deleted = 0 ";
@@ -52,7 +50,6 @@ public class SysDictService extends BaseServiceImpl {
      */
     @Transactional(readOnly = true)
     public PageResult<SysDictDetail> queryDetails(PageQuery<Map<String, Object>> pageQuery) {
-        WebLogs.info("数据字典明细列表查询---");
         Map<String, Object> param = pageQuery.getParam();
         String sql = """
                     select a.*, b.id dict_type_id,b.name dict_type_name
@@ -100,7 +97,6 @@ public class SysDictService extends BaseServiceImpl {
      */
     @Transactional
     public SysDictDetail saveDictDetail(SysDictDetail sysDictDetail) {
-        WebLogs.getLogger().info("数据字典保存---");
         String sql = """
                 select count(1) from sys_dict_detail where deleted = 0
                 and sys_dict_type_id = '%s' and value = '%s'
