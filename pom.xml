@@ -195,7 +195,7 @@
                             <name>xh-admin-${project.artifactId}</name>
                             <env>
                                 <!-- jdk版本-->
-                                <BP_JVM_VERSION>17</BP_JVM_VERSION>
+                                <BP_JVM_VERSION>21</BP_JVM_VERSION>
                             </env>
                             <!-- 镜像打标签 -->
                             <tags>
