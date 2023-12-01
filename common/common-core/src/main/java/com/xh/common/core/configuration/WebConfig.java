@@ -12,10 +12,14 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.xh.common.core.Constant;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -39,10 +43,13 @@ import java.util.List;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableWebMvc
+@ConfigurationProperties("spring.web")
 public class WebConfig implements WebMvcConfigurer {
 
     @Resource
     private MyLoggerInterceptor myLoggerInterceptor;
+    @Setter
+    private String [] allowedOriginPatterns;
 
     /**
      * 资源跨域设置
@@ -50,13 +57,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOriginPatterns(
-                        "http://localhost:**",
-                        "http://*.xhansky.cn**",
-                        "http://192.168.**"
-                )
+                .allowedOriginPatterns(allowedOriginPatterns)
                 .allowedMethods("POST", "PUT", "GET", "OPTIONS", "DELETE")
-//                .allowedHeaders("access_token", "authorization", "Content-type")
                 .maxAge(3600);
     }
 
