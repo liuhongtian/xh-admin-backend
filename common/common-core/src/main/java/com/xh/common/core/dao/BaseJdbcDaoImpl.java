@@ -108,7 +108,7 @@ public class BaseJdbcDaoImpl implements BaseJdbcDao {
 
     @Override
     public <K> PageResult<K> query(Class<K> clazz, PageQuery<?> pageQuery, JdbcTemplate jdbcTemplate) {
-        String sql = pageQuery.getBaseSql();
+        String sql = pageQuery.getSql();
         PageResult<K> pageResult = new PageResult<>();
         if (pageQuery.getIsPage()) {
             String dbType = getDbType(jdbcTemplate);

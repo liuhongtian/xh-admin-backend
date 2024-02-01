@@ -2,13 +2,12 @@ package com.xh.common.core.web;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.xh.common.core.utils.CommonUtil;
-import com.xh.common.core.utils.WebLogs;
 import lombok.Data;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 页面查询
@@ -37,7 +36,17 @@ public class PageQuery<T> {
     /**
      * 高级组合查询
      */
-    private List<FilterColumn> filters = new ArrayList<>();
+    private List<FilterRow> filters = new ArrayList<>();
+
+    /**
+     * 排序字段
+     */
+    private String orderProp;
+
+    /**
+     * 排序方向
+     */
+    private OrderDirection orderDirection;
 
     /**
      * 查询基础sql
@@ -60,50 +69,99 @@ public class PageQuery<T> {
         }
     }
 
+    public String getSql() {
+        var whereCon = getWhereCon(this.filters);
+        if (CommonUtil.isNotEmpty(whereCon)) whereCon = " where " + whereCon;
+        if (CommonUtil.isNotEmpty(orderProp) && CommonUtil.isNotEmpty(orderDirection)) {
+            whereCon += " order by %s %s".formatted(orderProp, orderDirection);
+        }
+        if (CommonUtil.isNotEmpty(whereCon)) {
+            return "select * from (%s) QUERY %s".formatted(baseSql, whereCon);
+        }
+        return baseSql;
+    }
+
+    public String getWhereCon(List<FilterRow> filters) {
+        if (filters == null) return "";
+        StringBuilder whereCon = new StringBuilder();
+        for (int i = 0; i < filters.size(); i++) {
+            FilterRow filter = filters.get(i);
+            String str = "";
+            if (i != 0) {
+                str += (" " + filter.getLogic() + " ");
+            }
+            List<FilterRow> children = filter.getChildren();
+            if (children != null && !children.isEmpty()) {
+                String childrenWhereCon = getWhereCon(children);
+                if (!CommonUtil.isEmpty(childrenWhereCon)) {
+                    whereCon.append(str).append("(").append(childrenWhereCon).append(") ");
+                }
+            } else {
+                String prop = filter.getAlias();
+                if (CommonUtil.isEmpty(prop)) {
+                    prop = CommonUtil.toLowerUnderscore(filter.getProp());
+                }
+                ComparatorEnum condition = filter.getCondition();
+                str += prop + " ";
+                switch (condition) {
+                    case eq:
+                        str += "= " + filter.getValue(1);
+                        break;
+                    case ne:
+                        str += "<> " + filter.getValue(1);
+                        break;
+                    case gt:
+                        str += "> " + filter.getValue(1);
+                        break;
+                    case ge:
+                        str += ">= " + filter.getValue(1);
+                        break;
+                    case lt:
+                        str += "< " + filter.getValue(1);
+                        break;
+                    case le:
+                        str += "<= " + filter.getValue(1);
+                        break;
+                    case in:
+                        str += "in (" + filter.getInValues() + ")";
+                        break;
+                    case ct:
+                        str += "like '%" + filter.getValue1() + "%'";
+                        break;
+                    case nct:
+                        str += "not like '%" + filter.getValue1() + "%'";
+                        break;
+                    case bt:
+                        str += "between " + filter.getValue(1) + " and " + filter.getValue(2);
+                        break;
+                }
+                whereCon.append(str);
+            }
+        }
+        return whereCon.toString();
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     @Data
-    public static class FilterColumn {
+    public static class FilterRow {
         private Boolean enabled;
-        private String data;
+        private String type;
         private String logic;
-        private String field;
+        private String prop;
         private String alias;
         private ComparatorEnum condition;
         private Object value1;
         private Object value2;
-        private List<FilterColumn> children;
-
-        public FilterColumn() {
-        }
+        private List<FilterRow> children;
 
         private Object getValue(int flag) {
             Object value = this.value1;
             if (flag == 2) {
                 value = this.value2;
             }
-            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS Z", Locale.US);
-            DateFormat dateFormat2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            if (CommonUtil.isEmpty(value)) return "null";
-            if ("number".equals(data)) {
+            if (value == null) return "null";
+            if ("number".equals(type) || value instanceof Boolean) {
                 return value;
-            } else if ("date".equals(data) || "datetime".equals(data)) {
-                Date date = null;
-                try {
-                    date = dateFormat.parse(CommonUtil.getString(value).replace("Z", " UTC"));
-                } catch (ParseException e) {
-                    WebLogs.error(e);
-                    e.printStackTrace();
-                }
-                return "str_to_date('" + dateFormat2.format(date) + "', '%Y-%m-%d %H:%i:%s')";
-            } else if ("month".equals(data)) {
-                Date date = null;
-                try {
-                    date = dateFormat.parse(CommonUtil.getString(value).replace("Z", " UTC"));
-                } catch (ParseException e) {
-                    WebLogs.error(e);
-                    e.printStackTrace();
-                }
-                return "date_format('" + dateFormat2.format(date) + "', '%Y-%m')";
             }
             return "'" + value + "'";
         }
@@ -111,7 +169,7 @@ public class PageQuery<T> {
         private String getInValues() {
             String[] values = CommonUtil.getString(this.value1).split(",");
             StringBuilder sb = new StringBuilder();
-            if ("number".equals(data)) {
+            if ("number".equals(type)) {
                 for (String value : values) {
                     sb.append(",").append(value);
                 }
@@ -157,14 +215,22 @@ public class PageQuery<T> {
         /**
          * not like
          */
-        notcontains,
+        nct,
         /**
          * like
          */
-        contains,
+        ct,
         /**
          * between ... and ...
          */
         bt
+    }
+
+    /**
+     * 排序方向
+     */
+    public enum OrderDirection {
+        asc,
+        desc
     }
 }

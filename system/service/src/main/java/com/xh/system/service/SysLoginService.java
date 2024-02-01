@@ -4,8 +4,8 @@ import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.captcha.AbstractCaptcha;
 import cn.hutool.captcha.CaptchaUtil;
-import cn.hutool.captcha.CircleCaptcha;
 import cn.hutool.http.Header;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
@@ -59,7 +59,7 @@ public class SysLoginService extends BaseServiceImpl {
      */
     public ImageCaptchaDTO getImageCaptcha(String captchaKey) {
         //定义图形验证码的长、宽、验证码字符数、干扰元素个数
-        CircleCaptcha captcha = CaptchaUtil.createCircleCaptcha(100, 30, 4, 20);
+        AbstractCaptcha captcha = CaptchaUtil.createLineCaptcha(100, 30, 4, 10);
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         ImageCaptchaDTO imageCaptcha = new ImageCaptchaDTO();
         imageCaptcha.setCaptchaKey(captchaKey);
@@ -95,7 +95,7 @@ public class SysLoginService extends BaseServiceImpl {
             //验证图形验证码
             ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
             String key = captchaKeyPrefix + captchaKey;
-            CircleCaptcha captcha = (CircleCaptcha) valueOperations.get(key);
+            AbstractCaptcha captcha = (AbstractCaptcha) valueOperations.get(key);
             if (captcha == null) throw new MyException("验证码已失效");
             boolean verify = captcha.verify(captchaCode);
             if (!verify) throw new MyException("验证码错误");
@@ -151,7 +151,7 @@ public class SysLoginService extends BaseServiceImpl {
 
             SysLoginUserInfoDTO loginUserInfoDTO = session.getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
             List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
-            if (roles == null || roles.size() == 0) throw new MyException("当前账号未分配角色，无法登录！");
+            if (roles == null || roles.isEmpty()) throw new MyException("当前账号未分配角色，无法登录！");
 
             UserAgent ua = UserAgentUtil.parse(request.getHeader(Header.USER_AGENT.toString()));
             String ip = request.getHeader("X-Real-IP");
@@ -174,7 +174,7 @@ public class SysLoginService extends BaseServiceImpl {
             onlineUserDTO.setLocale(locale);
             onlineUserDTO.setLocaleLabel(localeLabel);
 
-            SysOrgRoleDTO orgRole = roles.get(0); //默认当前使用角色为第一个角色
+            SysOrgRoleDTO orgRole = roles.getFirst(); //默认当前使用角色为第一个角色
             onlineUserDTO.setOrgId(orgRole.getSysOrgId());
             onlineUserDTO.setRoleId(orgRole.getSysRoleId());
             onlineUserDTO.setOrgName(orgRole.getOrgName());
@@ -356,7 +356,7 @@ public class SysLoginService extends BaseServiceImpl {
                 loginUserInfo.setTokenName(StpUtil.getTokenName());
                 loginUserInfo.setTokenValue(StpUtil.getTokenValue());
                 loginUserInfo.setUser(loginUserInfoDTO.getUser());
-                OnlineUserDTO onlineUser = (OnlineUserDTO) tokenSession.get(LoginUtil.SYS_USER_KEY);
+                OnlineUserDTO onlineUser = tokenSession.getModel(LoginUtil.SYS_USER_KEY, OnlineUserDTO.class);
                 List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
                 for (SysOrgRoleDTO role : roles) {
                     role.setActive(Objects.equals(onlineUser.getRoleId(), role.getSysRoleId()) && Objects.equals(onlineUser.getOrgId(), role.getSysOrgId()));

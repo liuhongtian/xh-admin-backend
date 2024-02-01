@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>3.2.2</version>
         <relativePath/>
     </parent>
 
@@ -26,7 +26,7 @@
         <springdoc-openapi-starter-webmvc-ui.version>2.3.0</springdoc-openapi-starter-webmvc-ui.version>
         <guava.version>32.1.1-jre</guava.version>
         <sa-token-spring-boot3-starter.version>1.37.0</sa-token-spring-boot3-starter.version>
-        <hutool-version>5.8.23</hutool-version>
+        <hutool-version>5.8.25</hutool-version>
         <weixin-java-version>4.5.0</weixin-java-version>
         <javacv-version>1.5.9</javacv-version>
         <ip2region-version>2.7.0</ip2region-version>
