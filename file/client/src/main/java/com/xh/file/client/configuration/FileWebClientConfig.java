@@ -24,12 +24,10 @@ public class FileWebClientConfig {
     private String fileUrl;
 
     public HttpServiceProxyFactory fileHttpServiceProxyFactory() {
-        return HttpServiceProxyFactory.builder(
-                        WebClientAdapter.forClient(myWebClientBuilder.baseUrl(fileUrl).build())
-                )
-                // 设置超时时间10s
-                .blockTimeout(Duration.ofSeconds(10))
-                .build();
+        WebClientAdapter webClientAdapter = WebClientAdapter.create(myWebClientBuilder.baseUrl(fileUrl).build());
+        // 设置超时时间10s
+        webClientAdapter.setBlockTimeout(Duration.ofSeconds(10));
+        return HttpServiceProxyFactory.builderFor(webClientAdapter).build();
     }
 
     /**

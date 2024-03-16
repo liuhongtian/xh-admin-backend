@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Tag(name = "系统用户管理")
+@Tag(name = "用户管理")
 @RestController
 @RequestMapping("/api/system/user")
 public class SysUserController {
@@ -44,13 +44,13 @@ public class SysUserController {
     }
 
     @SaIgnore
-    @Operation(description = "web管理系统登录")
+    @Operation(description = "登录")
     @PostMapping("/login")
     public RestResponse<LoginUserInfoVO> login(HttpServletRequest request, @RequestBody Map<String, Object> params) {
         return RestResponse.success(sysLoginService.login(request, params));
     }
 
-    @Operation(description = "web管理系统角色切换")
+    @Operation(description = "角色切换")
     @PostMapping("/switchUserRole")
     public RestResponse<LoginUserInfoVO> switchUserRole(@RequestBody Map<String, Object> params) {
         return RestResponse.success(sysLoginService.switchUserRole(params));
@@ -63,7 +63,7 @@ public class SysUserController {
         return RestResponse.success();
     }
 
-    @Operation(description = "web管理系统注销")
+    @Operation(description = "注销")
     @PostMapping("/logout")
     public RestResponse<?> login() {
         return sysLoginService.logout();

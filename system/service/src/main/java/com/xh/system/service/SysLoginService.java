@@ -13,11 +13,7 @@ import com.xh.common.core.dto.*;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.LoginUtil;
-import com.xh.common.core.utils.WebLogs;
-import com.xh.common.core.web.MyException;
-import com.xh.common.core.web.PageQuery;
-import com.xh.common.core.web.PageResult;
-import com.xh.common.core.web.RestResponse;
+import com.xh.common.core.web.*;
 import com.xh.system.client.dto.ImageCaptchaDTO;
 import com.xh.system.client.entity.SysUser;
 import com.xh.system.client.vo.LoginUserInfoVO;
@@ -39,6 +35,7 @@ import org.springframework.util.FileCopyUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -134,7 +131,7 @@ public class SysLoginService extends BaseServiceImpl {
                         dstManager.commit(transaction);
                     } catch (Exception e) {
                         dstManager.rollback(transaction);
-                        WebLogs.error(e.getMessage());
+                        log.error(e.getMessage());
                     }
                 }
             } else {
@@ -144,7 +141,12 @@ public class SysLoginService extends BaseServiceImpl {
                 baseJdbcDao.update(sysUser);
             }
 
-            StpUtil.login(sysUser.getId());
+            //不允许重复登录，则将已登录的强制下线
+            if (Boolean.FALSE.equals(sysUser.getAllowRepeat())) {
+                StpUtil.kickout(sysUser.getId(), "WEB");
+            }
+
+            StpUtil.login(sysUser.getId(), "WEB");
             //刷新用户信息和权限缓存
             refreshUserPermission(sysUser.getId());
             session = StpUtil.getSession();
@@ -154,10 +156,7 @@ public class SysLoginService extends BaseServiceImpl {
             if (roles == null || roles.isEmpty()) throw new MyException("当前账号未分配角色，无法登录！");
 
             UserAgent ua = UserAgentUtil.parse(request.getHeader(Header.USER_AGENT.toString()));
-            String ip = request.getHeader("X-Real-IP");
-            if (CommonUtil.isEmpty(ip)) {
-                ip = request.getRemoteAddr();
-            }
+            String ip = MyContext.getSysLog().getIp();
             String ipRegion = getIpRegion2(ip);
 
             OnlineUserDTO onlineUserDTO = new OnlineUserDTO();
@@ -193,7 +192,7 @@ public class SysLoginService extends BaseServiceImpl {
     public LoginUserInfoVO switchUserRole(Map<String, Object> params) {
         String orgId = CommonUtil.getString(params.get("sysOrgId"));
         String roleId = CommonUtil.getString(params.get("sysRoleId"));
-        SysLoginUserInfoDTO loginUserInfoDTO = StpUtil.getSession().getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
+        SysLoginUserInfoDTO loginUserInfoDTO = LoginUtil.getSysUserInfo();
         List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
         for (SysOrgRoleDTO orgRole : roles) {
             //从当前登录用户session中寻找匹配的角色，并设置当前角色，机构，及名称
@@ -260,6 +259,28 @@ public class SysLoginService extends BaseServiceImpl {
                         r = i.getLoginIp().contains(param.get("ip").toString());
                     }
                     return r;
+                })
+                //排序
+                .sorted((a, b) -> {
+                    if (pageQuery.getOrderProp() == null || pageQuery.getOrderDirection() == null) return 0;
+                    try {
+                        Field field = CommonUtil.getField(OnlineUserDTO.class, pageQuery.getOrderProp());
+                        if(field == null) return 0;
+                        field.setAccessible(true);
+                        Object aVal = field.get(a);
+                        Object bVal = field.get(b);
+                        if(aVal!=null && bVal!=null){
+                            var px = aVal.toString().compareTo(bVal.toString());
+                            if( pageQuery.getOrderDirection() == PageQuery.OrderDirection.asc) {
+                                return -px;
+                            }
+                            return px;
+                        }
+                    } catch (ReflectiveOperationException e) {
+                        log.error("比较错误", e);
+                        throw new MyException(e.getMessage());
+                    }
+                    return 0;
                 })
                 .toList();
         PageResult<OnlineUserDTO> pageResult = new PageResult<>();
@@ -371,7 +392,6 @@ public class SysLoginService extends BaseServiceImpl {
         }
     }
 
-
     public String getIpRegion2(String ip) {
         // 1、创建 searcher 对象
         String dbPath = "/ip2region.xdb";
@@ -386,14 +406,13 @@ public class SysLoginService extends BaseServiceImpl {
         }
     }
 
-
     static class MySearcher extends Searcher implements AutoCloseable {
         public MySearcher(String dbFile, byte[] vectorIndex, byte[] cBuff) throws IOException {
             super(dbFile, vectorIndex, cBuff);
         }
 
         public static MySearcher newWithBuffer(byte[] cBuff) throws IOException {
-            return new MySearcher((String) null, (byte[]) null, cBuff);
+            return new MySearcher(null, null, cBuff);
         }
     }
 }

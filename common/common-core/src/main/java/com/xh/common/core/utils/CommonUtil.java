@@ -4,6 +4,8 @@ import com.google.common.base.CaseFormat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -47,7 +49,7 @@ public class CommonUtil {
     }
 
     /**
-     * 驼峰转小写下划线
+     * 驼峰转大写下划线
      */
     public static String toUpperUnderscore(String str) {
         return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, str);
@@ -92,6 +94,23 @@ public class CommonUtil {
     }
 
     /**
+     * 获取field包括父级继承的，子类会覆盖父类的field
+     */
+    public static Field getField(Class<?> clazz, String fieldName) {
+        if (clazz != null) {
+            Class<?> currentClass = clazz;
+            while (currentClass != null) {
+                try {
+                    return currentClass.getDeclaredField(fieldName);
+                } catch (NoSuchFieldException e) {
+                    currentClass = currentClass.getSuperclass();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * 获取文件的后缀名
      */
     public static String getFileSuffix(String filename) {
@@ -105,7 +124,7 @@ public class CommonUtil {
      * 获取文件摘要sha1
      */
     public static String getFileSha1(InputStream inputStream) {
-        try(inputStream) {
+        try (inputStream) {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
             byte[] buffer = new byte[1024 * 1024 * 10];
             int len;
@@ -123,5 +142,15 @@ public class CommonUtil {
         } catch (IOException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 返回异常的堆栈文本信息
+     */
+    public static String getThrowString(Throwable throwable) {
+        StringWriter sw = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(sw);
+        throwable.printStackTrace(printWriter);
+        return sw.toString();
     }
 }

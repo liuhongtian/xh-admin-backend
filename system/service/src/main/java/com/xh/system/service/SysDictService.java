@@ -88,7 +88,7 @@ public class SysDictService extends BaseServiceImpl {
                 select a.*,b.id dict_type_id,b.name dict_type_name from sys_dict_detail a
                 left join sys_dict_type b on a.sys_dict_type_id = b.id
                 where a.id = ?
-                     """;
+        """;
         return baseJdbcDao.findBySql(SysDictDetail.class, sql, id);
     }
 

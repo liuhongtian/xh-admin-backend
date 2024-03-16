@@ -57,23 +57,25 @@ public class PageQuery<T> {
      */
     private LinkedList<Object> args = new LinkedList<>();
 
-    //尾部添加参数
+    /**
+     * 尾部添加参数
+     */
     public void addArg(Object... arg) {
         this.args.addAll(Arrays.asList(arg));
     }
 
-    //头部添加参数
+    /**
+     * 头部添加参数
+     */
     public void addFirst(Object... arg) {
-        for (int i = arg.length - 1; i >= 0; i++) {
-            this.args.addFirst(arg[i]);
-        }
+        this.args.addAll(0, Arrays.asList(arg));
     }
 
     public String getSql() {
         var whereCon = getWhereCon(this.filters);
         if (CommonUtil.isNotEmpty(whereCon)) whereCon = " where " + whereCon;
         if (CommonUtil.isNotEmpty(orderProp) && CommonUtil.isNotEmpty(orderDirection)) {
-            whereCon += " order by %s %s".formatted(orderProp, orderDirection);
+            whereCon += " order by `%s` %s".formatted(CommonUtil.toLowerUnderscore(orderProp), orderDirection);
         }
         if (CommonUtil.isNotEmpty(whereCon)) {
             return "select * from (%s) QUERY %s".formatted(baseSql, whereCon);
@@ -102,7 +104,7 @@ public class PageQuery<T> {
                     prop = CommonUtil.toLowerUnderscore(filter.getProp());
                 }
                 ComparatorEnum condition = filter.getCondition();
-                str += prop + " ";
+                str +=  "`%s` ".formatted(prop);
                 switch (condition) {
                     case eq:
                         str += "= " + filter.getValue(1);

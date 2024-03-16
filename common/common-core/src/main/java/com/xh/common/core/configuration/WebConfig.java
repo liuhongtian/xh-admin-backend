@@ -1,7 +1,6 @@
 package com.xh.common.core.configuration;
 
 import cn.dev33.satoken.exception.NotWebContextException;
-import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -12,19 +11,18 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.xh.common.core.Constant;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
+import jakarta.servlet.Filter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -47,9 +45,12 @@ import java.util.List;
 public class WebConfig implements WebMvcConfigurer {
 
     @Resource
-    private MyLoggerInterceptor myLoggerInterceptor;
+    private MyFilter myFilter;
+    @Resource
+    private MyInterceptor myInterceptor;
     @Setter
-    private String [] allowedOriginPatterns;
+    private String[] allowedOriginPatterns;
+
 
     /**
      * 资源跨域设置
@@ -63,35 +64,30 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     /**
+     * 过滤器配置
+     */
+    @Bean
+    public FilterRegistrationBean filterRegistrationBean(){
+        FilterRegistrationBean<Filter> filterFilterRegistrationBean = new FilterRegistrationBean<>();
+        filterFilterRegistrationBean.setFilter(myFilter);
+        filterFilterRegistrationBean.setOrder(1);//执行的顺序
+        filterFilterRegistrationBean.addUrlPatterns("/*");
+        return filterFilterRegistrationBean;
+    }
+
+    /**
      * 请求拦截器
      */
     @Override
     public void addInterceptors(@Nonnull InterceptorRegistry registry) {
         WebMvcConfigurer.super.addInterceptors(registry);
-        myLoggerInterceptor.addInterceptor(registry);
-        // 注册 Sa-Token 拦截器，打开注解式鉴权功能
-        registry.addInterceptor(
-                        new SaInterceptor(handle -> {
-                            if (handle instanceof HandlerMethod) {
-                                StpUtil.checkLogin();
-                                //续签token
-                                StpUtil.updateLastActiveToNow();
-                            }
-                        })
-                )
-                .addPathPatterns("/**")
-                .excludePathPatterns(
-                        "/swagger-ui.html",
-                        "/swagger-ui.html/**",
-                        "/swagger-ui/**",
-                        "/v3/**"
-                ).order(5);
+        registry.addInterceptor(myInterceptor).addPathPatterns("/**");
     }
 
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         // 在头部添加，优先级别最高
-        converters.add(0, new MappingJackson2HttpMessageConverter(getDefaultObjectMapper()));
+        converters.addFirst(new MappingJackson2HttpMessageConverter(getDefaultObjectMapper()));
     }
 
 

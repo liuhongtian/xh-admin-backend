@@ -21,7 +21,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-@Tag(name = "文件操作控制器")
+@Tag(name = "文件操作")
 @RestController
 @RequestMapping("/api/file/operation")
 @Slf4j
@@ -59,13 +59,13 @@ public class FileOperationController {
     }
 
     @SaCheckPermission(value = {"system:file:edit", "system:file:detail"}, mode = SaMode.OR)
-    @Operation(description = "获取系统文件详情")
+    @Operation(description = "获取文件详情")
     @GetMapping("/get/{id}")
     public RestResponse<SysFile> getById(@PathVariable Serializable id) {
         return RestResponse.success(fileOperationService.getById(id));
     }
 
-    @Operation(description = "批量删除文件")
+    @Operation(description = "删除文件")
     @DeleteMapping("/del")
     public RestResponse<?> del(@RequestParam List<Serializable> ids) {
         fileOperationService.del(ids);

@@ -29,6 +29,10 @@ public class SysUser extends BaseEntity<Integer> {
     private Integer failuresNum;
     @Schema(title = "账号锁定的原因")
     private String lockMsg;
+    @Schema(title = "允许重复登录")
+    private Boolean allowRepeat;
+    @Schema(title = "自动续签，请求会自动延长token失效时间")
+    private Boolean autoRenewal;
     @Schema(title = "是否启用")
     private Boolean enabled;
 }

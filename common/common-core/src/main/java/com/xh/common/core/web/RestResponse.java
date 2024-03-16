@@ -64,9 +64,7 @@ public class RestResponse<T> implements Serializable {
      * 错误响应，携带错误message
      */
     public static RestResponse<String> error(String message) {
-        RestResponse<String> restResponse = new RestResponse<>();
-        restResponse.httpCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-        restResponse.status = "error";
+        RestResponse<String> restResponse = error();
         restResponse.message = message;
         return restResponse;
     }

@@ -1,10 +1,13 @@
 package com.xh.common.core.configuration;
 
 import cn.dev33.satoken.exception.SaTokenException;
+import com.xh.common.core.utils.CommonUtil;
+import com.xh.common.core.web.MyContext;
 import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.RestResponse;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * 控制层异常统一处理
  * sunxh 2023/2/26
  */
+@Slf4j
 @RestControllerAdvice
 public class MyControllerAdvice {
 
@@ -48,7 +52,7 @@ public class MyControllerAdvice {
         }
         if (e.getCode() == 11015) {
             res.setHttpCode(HttpStatus.UNAUTHORIZED.value());
-            res.setMessage("用户已被管理员踢下线！");
+            res.setMessage("用户已在其他地方登录，或者被管理员踢下线！");
         }
         if (e.getCode() == 11016) {
             res.setMessage("Token已被冻结！");
@@ -66,8 +70,9 @@ public class MyControllerAdvice {
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
-    public RestResponse<?> handleControllerException(HttpServletRequest request, Throwable ex) {
-        ex.printStackTrace();
+    public RestResponse<?> handleControllerException(HttpServletRequest request, Throwable e) {
+        log.error("服务器运行异常", e);
+        MyContext.getSysLog().setStackTrace(CommonUtil.getThrowString(e));
         RestResponse<?> response = RestResponse.error("服务器运行异常！");
         HttpStatus status = getStatus(request);
         if (status != null) {
