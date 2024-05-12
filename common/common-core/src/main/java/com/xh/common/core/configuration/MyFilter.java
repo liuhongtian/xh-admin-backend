@@ -92,10 +92,10 @@ public class MyFilter extends HttpFilter {
         String contentType = response.getContentType();
         if (contentType != null && contentType.startsWith("application/json")) {
             byte[] contentAsByteArray = response.getContentAsByteArray();
-            response.copyBodyToResponse();
             String responseContent = new String(contentAsByteArray);
             sysLog.setResponseBody(responseContent);
         }
+        response.copyBodyToResponse();
 
         final SaTokenContext saTokenContextOrSecond = SaManager.getSaTokenContextOrSecond();
         //异步存储请求的日志信息
