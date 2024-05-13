@@ -40,7 +40,12 @@ public class MyFilter extends HttpFilter {
         preHandle(request);
         //设置指定匹配的才记录日志
         boolean hit = SaRouter.match("/**")
-                .notMatch("/api/system/log/**")
+                .notMatch(ignored -> request.getRequestURI().endsWith("/query"))
+                .notMatch(
+                        "/api/system/log/**",
+                        "/api/system/user/queryOnlineUser",
+                        "/api/file/operation/download"
+                        )
                 .notMatchMethod("OPTIONS")
                 .isHit();
         if (hit) {

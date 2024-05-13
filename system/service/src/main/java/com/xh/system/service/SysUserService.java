@@ -1,23 +1,26 @@
 package com.xh.system.service;
 
 import cn.dev33.satoken.secure.BCrypt;
+import cn.dev33.satoken.session.SaSession;
+import cn.dev33.satoken.stp.StpUtil;
+import com.xh.common.core.dto.SysLoginUserInfoDTO;
+import com.xh.common.core.dto.SysUserDTO;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
+import com.xh.common.core.utils.LoginUtil;
 import com.xh.common.core.web.MyException;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.system.client.dto.SysUserJobDTO;
 import com.xh.system.client.entity.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -58,6 +61,31 @@ public class SysUserService extends BaseServiceImpl {
         if ("enabled".equals(prop)) menu.setEnabled((Boolean) value);
         else throw new MyException("参数异常，检查后重试！");
         baseJdbcDao.update(menu);
+    }
+
+    /**
+     * 个人中心用户保存
+     */
+    @Transactional
+    public SysUser personalCenterSave(SysUser sysUser) {
+        if (!Objects.equals(CommonUtil.getString(sysUser.getId()), StpUtil.getLoginId())) {
+            throw new MyException("非法请求！");
+        }
+        SysUser sysUser1 = baseJdbcDao.findById(SysUser.class, sysUser.getId());
+        sysUser1.setName(sysUser.getName());
+        sysUser1.setPassword(sysUser.getPassword());
+        sysUser1.setAvatar(sysUser.getAvatar());
+        sysUser1.setTelephone(sysUser.getTelephone());
+        save(sysUser1);
+
+        //刷新一下
+        SaSession session = StpUtil.getSession();
+        SysLoginUserInfoDTO userInfoDTO = session.getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
+        SysUserDTO sysUserDTO = new SysUserDTO();
+        BeanUtils.copyProperties(sysUser1, sysUserDTO);
+        userInfoDTO.setUser(sysUserDTO);
+        session.set(LoginUtil.SYS_USER_KEY, userInfoDTO);
+        return sysUser1;
     }
 
     /**

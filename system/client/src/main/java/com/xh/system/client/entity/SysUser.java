@@ -33,6 +33,8 @@ public class SysUser extends BaseEntity<Integer> {
     private Boolean allowRepeat;
     @Schema(title = "自动续签，请求会自动延长token失效时间")
     private Boolean autoRenewal;
+    @Schema(title = "是否演示账号")
+    private Boolean isDemo;
     @Schema(title = "是否启用")
     private Boolean enabled;
 }

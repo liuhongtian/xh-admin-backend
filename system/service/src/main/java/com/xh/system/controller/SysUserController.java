@@ -3,6 +3,7 @@ package com.xh.system.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.annotation.SaMode;
+import cn.dev33.satoken.stp.StpUtil;
 import com.xh.common.core.dto.OnlineUserDTO;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
@@ -67,6 +68,18 @@ public class SysUserController {
     @PostMapping("/logout")
     public RestResponse<?> login() {
         return sysLoginService.logout();
+    }
+
+    @Operation(description = "保存个人中心信息")
+    @PostMapping("/personalCenterSave")
+    public RestResponse<SysUser> personalCenterSave(@RequestBody SysUser sysUser) {
+        return RestResponse.success(sysUserService.personalCenterSave(sysUser));
+    }
+
+    @Operation(description = "获取个人中心详情")
+    @GetMapping("/getPersonalCenterDetail")
+    public RestResponse<SysUser> getPersonalCenterDetail() {
+        return RestResponse.success(sysUserService.getById((Serializable) StpUtil.getLoginId()));
     }
 
     @Operation(description = "用户列表查询")

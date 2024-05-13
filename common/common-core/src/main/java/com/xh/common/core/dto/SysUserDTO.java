@@ -27,4 +27,6 @@ public class SysUserDTO extends BaseDTO<Integer> {
     private Boolean autoRenewal;
     @Schema(title = "是否启用")
     private Boolean enabled;
+    @Schema(title = "是否演示账号")
+    private Boolean isDemo;
 }
