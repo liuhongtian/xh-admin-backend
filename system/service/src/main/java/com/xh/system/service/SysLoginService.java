@@ -350,7 +350,7 @@ public class SysLoginService extends BaseServiceImpl {
                          a.sys_role_id role_id,b.*
                     from sys_role_menu a
                     left join sys_menu b on a.sys_menu_id = b.id
-                    where a.sys_role_id in (%s)
+                    where a.deleted = 0 and b.deleted = 0 and a.sys_role_id in (%s)
                     order by b.`order` asc
                 """.formatted(roleIds);
         //查询角色拥有的所有菜单权限
