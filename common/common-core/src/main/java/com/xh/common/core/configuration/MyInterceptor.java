@@ -44,13 +44,13 @@ public class MyInterceptor extends SaInterceptor {
             log.info("自动程序跨服务：{}", feignValue);
             StpUtil.login(feignValue, "auto-job");
         }
+
         //对于无法添加header但需要鉴权的请求可以将token放在参数中，手动从请求中获取token设置
         String tokenValue = request.getParameter(StpUtil.getTokenName());
         if (CommonUtil.isNotEmpty(tokenValue)) {
             StpUtil.setTokenValue(tokenValue);
         }
 
-        //打印一下控制器相关日志
         if (handler instanceof HandlerMethod handlerMethod) {
             SysLog sysLog = MyContext.getSysLog();
             Class<?> controllerClass = handlerMethod.getBeanType();
@@ -58,7 +58,6 @@ public class MyInterceptor extends SaInterceptor {
             Method method = handlerMethod.getMethod();
             Operation operation = method.getAnnotation(Operation.class);
             if (tag == null || CommonUtil.isEmpty(tag.name())) {
-
                 throw new MyException("保持良好的开发规范，请补充：%s 类Tag注解name属性，描述controller用途".formatted(controllerClass.getName()));
             }
             if (operation == null || CommonUtil.isEmpty(operation.description())) {
@@ -68,6 +67,7 @@ public class MyInterceptor extends SaInterceptor {
             sysLog.setTag(tag.name());
             sysLog.setOperation(operation.description());
 
+            //打印一下控制器相关日志
             log.info("{} {} {}--{}", controllerClass.getName(), method.getName(), tag.name(), operation.description());
 
             this.auth = ignored -> {
@@ -82,6 +82,25 @@ public class MyInterceptor extends SaInterceptor {
                             StpUtil.checkLogin();
                             SysLoginUserInfoDTO userInfoDTO = LoginUtil.getSysUserInfo();
                             SysUserDTO user = userInfoDTO.getUser();
+
+                            // 演示站的演示账号部分操作不允许
+                            if(Boolean.TRUE.equals(user.getIsDemo())) {
+                                final String requestURI = request.getRequestURI();
+                                boolean hit = SaRouter.notMatch(
+                                                "/api/system/user/personalCenterSave",
+                                                "/api/file/operation/upload",
+                                                "/api/system/user/imports",
+                                                "/api/system/user/saveUserJobs"
+                                        )
+                                        .notMatch(obj -> {
+                                            boolean isDel = requestURI.endsWith("/del");
+                                            boolean isSave = requestURI.endsWith("/save");
+                                            boolean isSwitchProp = requestURI.endsWith("/switch_prop");
+                                            return isDel || isSave || isSwitchProp;
+                                        }).isHit();
+                                if(!hit) throw new MyException("演示账号不允许此操作");
+                            }
+
                             if (Boolean.TRUE.equals(user.getAutoRenewal())) {
                                 //续签token过期时间
                                 StpUtil.renewTimeout(saTokenConfig.getTimeout());

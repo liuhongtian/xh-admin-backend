@@ -251,13 +251,13 @@ public class SysUserService extends BaseServiceImpl {
      * ids批量删除用户组
      */
     @Transactional
-    public void delUserGroup(String ids) {
-        String sql = "select * from sys_user_group where id in (%s)".formatted(ids);
-        List<SysUserGroup> list = baseJdbcDao.findList(SysUserGroup.class, sql);
-        for (SysUserGroup sysUserGroup : list) {
-            sysUserGroup.setDeleted(true);//已删除
-            baseJdbcDao.update(sysUserGroup);
-        }
+    public void delUserGroup(List<Serializable> ids) {
+        log.info("ids批量删除用户组--");
+        String sql = "update sys_user_group set deleted = 1 where id in (:ids)";
+        Map<String, Object> paramMap = new HashMap<>() {{
+            put("ids", ids);
+        }};
+        primaryNPJdbcTemplate.update(sql, paramMap);
     }
 
     /**

@@ -39,13 +39,14 @@ public class MyFilter extends HttpFilter {
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         preHandle(request);
         //设置指定匹配的才记录日志
-        boolean hit = SaRouter.match("/**")
+        boolean hit = SaRouter
                 .notMatch(ignored -> request.getRequestURI().endsWith("/query"))
                 .notMatch(
-                        "/api/system/log/**",
+                        "/api/system/log/get/**",
                         "/api/system/user/queryOnlineUser",
-                        "/api/file/operation/download"
-                        )
+                        "/api/file/operation/download",
+                        "/api/system/user/queryUserGroupList"
+                )
                 .notMatchMethod("OPTIONS")
                 .isHit();
         if (hit) {

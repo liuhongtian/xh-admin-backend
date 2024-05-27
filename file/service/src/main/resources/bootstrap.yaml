@@ -5,7 +5,7 @@ nacos-username: ${NACOS_USERNAME:nacos}
 nacos-password: ${NACOS_PASSWROD:nacos}
 
 server:
-  port: 6003
+  port: ${SERVER_PORT:6003}
 
 spring:
   application:

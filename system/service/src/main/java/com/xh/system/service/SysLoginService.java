@@ -105,6 +105,9 @@ public class SysLoginService extends BaseServiceImpl {
                 throw new MyException(sysUser.getLockMsg());
             boolean matches = BCrypt.checkpw(password, sysUser.getPassword());
             if (!matches) {
+                if(Boolean.TRUE.equals(sysUser.getIsDemo())) {
+                    throw new MyException("密码错误！");
+                }
                 try {
                     //最大尝试次数
                     int maxTryNum = 3;

@@ -151,8 +151,8 @@ public class SysUserController {
 
     @SaCheckPermission("system:userGroup:del")
     @Operation(description = "ids批量删除用户组")
-    @DeleteMapping("/delUserGroup/{ids}")
-    public RestResponse<?> delUserGroup(@PathVariable String ids) {
+    @DeleteMapping("/delUserGroup")
+    public RestResponse<?> delUserGroup(@RequestParam List<Serializable> ids) {
         sysUserService.delUserGroup(ids);
         return RestResponse.success();
     }
