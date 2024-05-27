@@ -1,7 +1,7 @@
 <div align="center">
   <img alt="XHan Admin" width="120" height="120" src="public/favicon.svg">
   <h1>XHan Admin</h1>
-   XHan Admin（晓寒管理系统） 后端端代码库
+   XHan Admin（晓寒管理系统） 后端代码库
 </div>
 
 ## ⚡ 介绍
@@ -110,7 +110,7 @@ pnpm test
 
 ## ☕ 捐赠
 
-提交PR，提交issue，帮我点点star,或者直接打赏我，哈哈哈~~~
+提交PR，提交issue，帮我点点star，或者直接打赏我，哈哈哈~~~
 
 [//]: # (## 交流群)
 
