@@ -10,6 +10,7 @@ import cn.hutool.http.Header;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
 import com.xh.common.core.dto.*;
+import com.xh.common.core.entity.SysLog;
 import com.xh.common.core.service.BaseServiceImpl;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.LoginUtil;
@@ -20,9 +21,7 @@ import com.xh.system.client.vo.LoginUserInfoVO;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.lionsoul.ip2region.xdb.Searcher;
 import org.springframework.beans.BeanUtils;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
@@ -30,10 +29,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.util.FileCopyUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -159,20 +155,18 @@ public class SysLoginService extends BaseServiceImpl {
             if (roles == null || roles.isEmpty()) throw new MyException("当前账号未分配角色，无法登录！");
 
             UserAgent ua = UserAgentUtil.parse(request.getHeader(Header.USER_AGENT.toString()));
-            String ip = MyContext.getSysLog().getIp();
-            String ipRegion = getIpRegion2(ip);
-
+            SysLog sysLog = MyContext.getSysLog();
             OnlineUserDTO onlineUserDTO = new OnlineUserDTO();
             onlineUserDTO.setToken(StpUtil.getTokenValue());
             onlineUserDTO.setUserCode(sysUser.getCode());
             onlineUserDTO.setUserName(sysUser.getName());
             onlineUserDTO.setLoginBrowser(ua.getBrowser().getName());
             onlineUserDTO.setBrowserVersion(ua.getVersion());
-            onlineUserDTO.setLoginIp(ip);
+            onlineUserDTO.setLoginIp(sysLog.getIp());
             onlineUserDTO.setLoginBrowser(ua.getBrowser().getName());
             onlineUserDTO.setLoginOs(ua.getOs().getName());
             onlineUserDTO.setIsMobile(ua.isMobile());
-            onlineUserDTO.setLoginAddress(ipRegion);
+            onlineUserDTO.setLoginAddress(sysLog.getIpAddress());
             onlineUserDTO.setLocale(locale);
             onlineUserDTO.setLocaleLabel(localeLabel);
 
@@ -392,30 +386,6 @@ public class SysLoginService extends BaseServiceImpl {
             return loginUserInfo;
         } catch (NotLoginException e) {
             return null;
-        }
-    }
-
-    public String getIpRegion2(String ip) {
-        // 1、创建 searcher 对象
-        String dbPath = "/ip2region.xdb";
-        try (
-                InputStream inputStream = new ClassPathResource(dbPath).getInputStream();
-                MySearcher searcher = MySearcher.newWithBuffer(FileCopyUtils.copyToByteArray(inputStream))
-        ) {
-            return searcher.search(ip).replaceAll("\\|", "").replaceAll("0", "");
-        } catch (Exception e) {
-            log.error("解析ip属地异常", e);
-            return "";
-        }
-    }
-
-    static class MySearcher extends Searcher implements AutoCloseable {
-        public MySearcher(String dbFile, byte[] vectorIndex, byte[] cBuff) throws IOException {
-            super(dbFile, vectorIndex, cBuff);
-        }
-
-        public static MySearcher newWithBuffer(byte[] cBuff) throws IOException {
-            return new MySearcher(null, null, cBuff);
         }
     }
 }

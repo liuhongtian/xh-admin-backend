@@ -78,6 +78,9 @@ public class MyFilter extends HttpFilter {
             ip = request.getRemoteAddr();
         }
         sysLog.setIp(ip);
+        String ipRegion2 = CommonUtil.getIpRegion2(ip);
+        sysLog.setIpAddress(ipRegion2);
+
         Map<String, String[]> parameterMap = request.getParameterMap();
         if (!parameterMap.isEmpty()) {
             JSONObject parameter = JSONObject.from(parameterMap);

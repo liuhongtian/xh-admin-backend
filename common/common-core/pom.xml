@@ -55,6 +55,11 @@
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
         </dependency>
+        <!--      ip属地离线查询      -->
+        <dependency>
+            <groupId>org.lionsoul</groupId>
+            <artifactId>ip2region</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.xh</groupId>
             <artifactId>common-jdbc</artifactId>

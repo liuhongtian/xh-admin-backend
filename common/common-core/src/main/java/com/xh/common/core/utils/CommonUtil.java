@@ -1,6 +1,10 @@
 package com.xh.common.core.utils;
 
 import com.google.common.base.CaseFormat;
+import lombok.extern.slf4j.Slf4j;
+import org.lionsoul.ip2region.xdb.Searcher;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +23,7 @@ import java.util.Map;
  * 通用工具类
  * sunxh 2023/4/16
  */
+@Slf4j
 public class CommonUtil {
     /**
      * 获取字符串，null返回空串
@@ -152,5 +157,33 @@ public class CommonUtil {
         PrintWriter printWriter = new PrintWriter(sw);
         throwable.printStackTrace(printWriter);
         return sw.toString();
+    }
+
+
+    /**
+     * 离线解析ip地址
+     */
+    public static String getIpRegion2(String ip) {
+        // 1、创建 searcher 对象
+        String dbPath = "/ip2region.xdb";
+        try (
+                InputStream inputStream = new ClassPathResource(dbPath).getInputStream();
+                MySearcher searcher = MySearcher.newWithBuffer(FileCopyUtils.copyToByteArray(inputStream))
+        ) {
+            return searcher.search(ip).replaceAll("\\|", "").replaceAll("0", "");
+        } catch (Exception e) {
+            log.error("解析ip属地异常", e);
+            return "";
+        }
+    }
+
+    static class MySearcher extends Searcher implements AutoCloseable {
+        public MySearcher(String dbFile, byte[] vectorIndex, byte[] cBuff) throws IOException {
+            super(dbFile, vectorIndex, cBuff);
+        }
+
+        public static MySearcher newWithBuffer(byte[] cBuff) throws IOException {
+            return new MySearcher(null, null, cBuff);
+        }
     }
 }
