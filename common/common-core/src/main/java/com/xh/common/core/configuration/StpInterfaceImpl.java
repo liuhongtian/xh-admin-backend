@@ -7,7 +7,9 @@ import com.xh.common.core.dto.OnlineUserDTO;
 import com.xh.common.core.dto.SysLoginUserInfoDTO;
 import com.xh.common.core.dto.SysMenuDTO;
 import com.xh.common.core.dto.SysOrgRoleDTO;
+import com.xh.common.core.service.CommonService;
 import com.xh.common.core.utils.LoginUtil;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,17 +20,18 @@ import java.util.List;
 @Component
 public class StpInterfaceImpl implements StpInterface {
 
+    @Resource
+    private CommonService commonService;
+
     /**
      * 返回一个账号所拥有的权限码集合
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        SaSession session = StpUtil.getSession();
         SaSession tokenSession = StpUtil.getTokenSession();
-        SysLoginUserInfoDTO loginUserInfoDTO = session.getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
-        if(loginUserInfoDTO == null) return null;
         OnlineUserDTO onlineUser = tokenSession.getModel(LoginUtil.SYS_USER_KEY, OnlineUserDTO.class);
-        return loginUserInfoDTO.getRoleMenuMap().get(onlineUser.getRoleId()).stream().map(SysMenuDTO::getName).toList();
+        List<SysMenuDTO> rolePermissions = commonService.getRolePermissions(onlineUser.getRoleId(), false);
+        return rolePermissions.stream().map(SysMenuDTO::getName).toList();
     }
 
     /**
@@ -38,7 +41,7 @@ public class StpInterfaceImpl implements StpInterface {
     public List<String> getRoleList(Object loginId, String loginType) {
         SaSession session = StpUtil.getSession();
         SysLoginUserInfoDTO loginUserInfoDTO = session.getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
-        if(loginUserInfoDTO == null) return null;
+        if (loginUserInfoDTO == null) return null;
         List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
         return roles.stream().map(i -> i.getSysOrgId() + i.getRoleName()).toList();
     }

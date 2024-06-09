@@ -1,12 +1,14 @@
 package com.xh.system.service;
 
 import com.xh.common.core.service.BaseServiceImpl;
+import com.xh.common.core.service.CommonService;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import com.xh.system.client.entity.SysMenu;
 import com.xh.system.client.entity.SysRole;
 import com.xh.system.client.entity.SysRoleMenu;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,9 @@ import java.util.Map;
 @Service
 @Slf4j
 public class SysRoleService extends BaseServiceImpl {
+
+    @Resource
+    private CommonService commonService;
 
     /**
      * 系统角色查询
@@ -74,6 +79,9 @@ public class SysRoleService extends BaseServiceImpl {
                     )
                 """;
         primaryJdbcTemplate.update(sql2, sysRole.getId(), sysRole.getId());
+
+        //刷新角色权限
+        commonService.getRolePermissions(sysRole.getId(), true);
         return sysRole;
     }
 
@@ -83,7 +91,7 @@ public class SysRoleService extends BaseServiceImpl {
     @Transactional(readOnly = true)
     public SysRole getById(Serializable id) {
         SysRole role = baseJdbcDao.findById(SysRole.class, id);
-        if(role.getParentId() != null) {
+        if (role.getParentId() != null) {
             SysRole parentRole = baseJdbcDao.findById(SysRole.class, role.getParentId());
             role.setParentName(parentRole.getName());
         }
@@ -100,7 +108,7 @@ public class SysRoleService extends BaseServiceImpl {
     public void del(List<Serializable> ids) {
         log.info("批量删除角色--");
         String sql = "update sys_role set deleted = 1 where id in (:ids)";
-        Map<String, Object> paramMap = new HashMap<>(){{
+        Map<String, Object> paramMap = new HashMap<>() {{
             put("ids", ids);
         }};
         primaryNPJdbcTemplate.update(sql, paramMap);
@@ -112,11 +120,11 @@ public class SysRoleService extends BaseServiceImpl {
     @Transactional(readOnly = true)
     public List<SysMenu> queryRoleMenu(Map<String, Object> param) {
         log.info("查询角色可配置的所有菜单权限---");
-        if(param == null) param = new HashMap<>();
+        if (param == null) param = new HashMap<>();
         List<Object> args = new LinkedList<>();
         String sql = "select * from sys_menu where deleted = 0 ";
         //如果角色隶属于某个角色，那此角色只能维护隶属角色所拥有的角色权限
-        if(CommonUtil.isNotEmpty(param.get("parentId"))) {
+        if (CommonUtil.isNotEmpty(param.get("parentId"))) {
             sql += " and id in ( select sys_menu_id from sys_role_menu where sys_role_id = ?) ";
             args.add(param.get("parentId"));
         }

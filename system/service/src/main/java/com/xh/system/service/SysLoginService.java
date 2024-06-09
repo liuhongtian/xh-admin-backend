@@ -9,9 +9,14 @@ import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
-import com.xh.common.core.dto.*;
+import com.xh.common.core.Constant;
+import com.xh.common.core.dto.OnlineUserDTO;
+import com.xh.common.core.dto.SysLoginUserInfoDTO;
+import com.xh.common.core.dto.SysOrgRoleDTO;
+import com.xh.common.core.dto.SysUserDTO;
 import com.xh.common.core.entity.SysLog;
 import com.xh.common.core.service.BaseServiceImpl;
+import com.xh.common.core.service.CommonService;
 import com.xh.common.core.utils.CommonUtil;
 import com.xh.common.core.utils.LoginUtil;
 import com.xh.common.core.web.*;
@@ -44,8 +49,9 @@ import java.util.stream.Collectors;
 public class SysLoginService extends BaseServiceImpl {
     @Resource
     private DataSourceTransactionManager dstManager;
+    @Resource
+    private CommonService commonService;
 
-    public static final String captchaKeyPrefix = "captcha:";
 
     /**
      * 生成图形验证码
@@ -57,7 +63,7 @@ public class SysLoginService extends BaseServiceImpl {
         ImageCaptchaDTO imageCaptcha = new ImageCaptchaDTO();
         imageCaptcha.setCaptchaKey(captchaKey);
         imageCaptcha.setImageBase64(captcha.getImageBase64Data());
-        valueOperations.set(captchaKeyPrefix + captchaKey, captcha, 2, TimeUnit.MINUTES);
+        valueOperations.set(Constant.CAPTCHA_KEY_PREFIX + captchaKey, captcha, 2, TimeUnit.MINUTES);
         return imageCaptcha;
     }
 
@@ -87,7 +93,7 @@ public class SysLoginService extends BaseServiceImpl {
 
             //验证图形验证码
             ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-            String key = captchaKeyPrefix + captchaKey;
+            String key = Constant.CAPTCHA_KEY_PREFIX + captchaKey;
             AbstractCaptcha captcha = (AbstractCaptcha) valueOperations.get(key);
             if (captcha == null) throw new MyException("验证码已失效");
             boolean verify = captcha.verify(captchaCode);
@@ -101,7 +107,7 @@ public class SysLoginService extends BaseServiceImpl {
                 throw new MyException(sysUser.getLockMsg());
             boolean matches = BCrypt.checkpw(password, sysUser.getPassword());
             if (!matches) {
-                if(Boolean.TRUE.equals(sysUser.getIsDemo())) {
+                if (Boolean.TRUE.equals(sysUser.getIsDemo())) {
                     throw new MyException("密码错误！");
                 }
                 try {
@@ -179,8 +185,10 @@ public class SysLoginService extends BaseServiceImpl {
             StpUtil.getTokenSession().set(LoginUtil.SYS_USER_KEY, onlineUserDTO);
             //登录成功后删除验证码
             redisTemplate.delete(key);
+            return getCurrentLoginUserVO(true);
+        } else {
+            return getCurrentLoginUserVO(false);
         }
-        return getCurrentLoginUserVO();
     }
 
     /**
@@ -201,7 +209,7 @@ public class SysLoginService extends BaseServiceImpl {
                 onlineUserDTO.setRoleId(orgRole.getSysRoleId());
                 onlineUserDTO.setRoleName(orgRole.getRoleName());
                 tokenSession.set(LoginUtil.SYS_USER_KEY, onlineUserDTO);
-                return getCurrentLoginUserVO();
+                return getCurrentLoginUserVO(true);
             }
         }
         throw new MyException("角色切换异常，请重新登录后操作！");
@@ -262,13 +270,13 @@ public class SysLoginService extends BaseServiceImpl {
                     if (pageQuery.getOrderProp() == null || pageQuery.getOrderDirection() == null) return 0;
                     try {
                         Field field = CommonUtil.getField(OnlineUserDTO.class, pageQuery.getOrderProp());
-                        if(field == null) return 0;
+                        if (field == null) return 0;
                         field.setAccessible(true);
                         Object aVal = field.get(a);
                         Object bVal = field.get(b);
-                        if(aVal!=null && bVal!=null){
+                        if (aVal != null && bVal != null) {
                             var px = aVal.toString().compareTo(bVal.toString());
-                            if( pageQuery.getOrderDirection() == PageQuery.OrderDirection.asc) {
+                            if (pageQuery.getOrderDirection() == PageQuery.OrderDirection.asc) {
                                 return -px;
                             }
                             return px;
@@ -342,28 +350,16 @@ public class SysLoginService extends BaseServiceImpl {
         if (roleIds.isEmpty()) {
             throw new MyException("该用户未分配角色，无法登录!");
         }
-        String sql2 = """
-                    select
-                         a.sys_role_id role_id,b.*
-                    from sys_role_menu a
-                    left join sys_menu b on a.sys_menu_id = b.id
-                    where a.deleted = 0 and b.deleted = 0 and a.sys_role_id in (%s)
-                    order by b.`order` asc
-                """.formatted(roleIds);
-        //查询角色拥有的所有菜单权限
-        List<SysMenuDTO> menus = baseJdbcDao.findList(SysMenuDTO.class, sql2);
-        Map<Integer, List<SysMenuDTO>> roleMenus = menus.stream().collect(Collectors.groupingBy(SysMenuDTO::getRoleId));
         SysLoginUserInfoDTO loginUserInfoDTO = new SysLoginUserInfoDTO();
         loginUserInfoDTO.setUser(sysUserDTO);
         loginUserInfoDTO.setRoles(roles);
-        loginUserInfoDTO.setRoleMenuMap(roleMenus);
         session.set(LoginUtil.SYS_USER_KEY, loginUserInfoDTO);
     }
 
     /**
      * 获取当前token的用户角色信息
      */
-    private LoginUserInfoVO getCurrentLoginUserVO() {
+    private LoginUserInfoVO getCurrentLoginUserVO(Boolean refresh) {
         try {
             SaSession session = StpUtil.getSession();
             SaSession tokenSession = StpUtil.getTokenSession();
@@ -380,8 +376,7 @@ public class SysLoginService extends BaseServiceImpl {
                     role.setActive(Objects.equals(onlineUser.getRoleId(), role.getSysRoleId()) && Objects.equals(onlineUser.getOrgId(), role.getSysOrgId()));
                 }
                 loginUserInfo.setRoles(roles);
-                loginUserInfo.setMenus(loginUserInfoDTO.getRoleMenuMap().get(onlineUser.getRoleId()));
-
+                loginUserInfo.setMenus(commonService.getRolePermissions(onlineUser.getRoleId(), refresh));
             }
             return loginUserInfo;
         } catch (NotLoginException e) {

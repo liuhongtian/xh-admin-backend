@@ -90,7 +90,9 @@ public class MyInterceptor extends SaInterceptor {
                                                 "/api/system/user/personalCenterSave",
                                                 "/api/file/operation/upload",
                                                 "/api/system/user/imports",
-                                                "/api/system/user/saveUserJobs"
+                                                "/api/system/user/saveUserJobs",
+                                                "/api/system/user/saveUserGroup",
+                                                "/api/system/user/delUserGroup"
                                         )
                                         .notMatch(obj -> {
                                             boolean isDel = requestURI.endsWith("/del");
