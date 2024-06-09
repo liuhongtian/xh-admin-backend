@@ -164,6 +164,7 @@ public class CommonUtil {
      * 离线解析ip地址
      */
     public static String getIpRegion2(String ip) {
+        if ("0:0:0:0:0:0:0:1".equals(ip)) return null;
         // 1、创建 searcher 对象
         String dbPath = "/ip2region.xdb";
         try (
