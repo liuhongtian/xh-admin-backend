@@ -6,7 +6,7 @@
 
 ## ⚡ 介绍
 
-XHan Admin（晓寒管理系统）是一个开源免费（前后端分离）中后台管理系统基础解决方案, 无专业版收费，所有功能毫无保留的贡献给开源社区。
+XHan Admin（晓寒开源管理系统）是一个开源免费（前后端分离）中后台管理系统基础解决方案, 无专业版收费，所有功能毫无保留的贡献给开源社区。
 前端技术栈： Vue3, TypeScript, Element Plus, Pinia , Vite等
 后端技术栈： jdk21, springboot3, spring-cloud, spring-cloud-alibaba, SaToken等
 
@@ -46,60 +46,6 @@ gitee 码云代码仓库<br>
 - **系统监控**
 - **多角色切换**
 
-## 🚀 开始使用
-
-```bash
-# requirement
-node version 18+
-pnpm version 8+
-
-# clone
-git clone https://github.com/Alixhan/xh-admin-frontend
-
-# enter the project directory
-cd xh-admin-frontend
-
-# install dependencies
-pnpm i
-
-# start the service
-pnpm dev
-```
-
-## ✔️ 打包发布
-
-```bash
-# prod environment
-pnpm build:production
-```
-
-## 🔧 代码检查
-
-```bash
-# code formatting
-pnpm format
-
-# unit test
-pnpm test
-```
-
-## Git 提交规范
-
-**按照Angular提交标准来**<br>
-各大IDE开发工具均可安装git提交规范插件，JetBrains: `Git Commit Message Helper`,Vscode: `git commit plugin`
-
-* `feat` - A new feature
-* `fix` - A bug fix
-* `docs` - Documentation only changes
-* `style` - Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-* `refactor` - A code change that neither fixes a bug nor adds a feature
-* `perf` - A code change that improves performance
-* `test` - Adding missing tests or correcting existing tests
-* `build` - Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
-* `ci` - Changes to our Cl configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs
-* `chore` - Other changes that don't modify src or test files
-* `revert` - Reverts a previous commit
-
 ## 💕 贡献者
 
 非常感谢!
@@ -111,14 +57,6 @@ pnpm test
 ## ☕ 捐赠
 
 提交PR，提交issue，帮我点点star，或者直接打赏我，哈哈哈~~~
-
-[//]: # (## 交流群)
-
-[//]: # ()
-[//]: # (扫码加我微信（备注：xh），邀请你进微信交流群)
-
-[//]: # ()
-[//]: # (![wechat.png]&#40;docs/public/image/wechat.png&#41;)
 
 ## 📄 License
 
