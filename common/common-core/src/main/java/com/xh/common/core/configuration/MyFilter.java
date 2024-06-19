@@ -11,6 +11,7 @@ import com.xh.common.core.web.MyContext;
 import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -94,8 +95,15 @@ public class MyFilter extends HttpFilter {
     private void afterHandle(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response) throws IOException {
         SysLog sysLog = MyContext.getSysLog();
 
-        //存储请求体内容
-        sysLog.setRequestBody(request.getContentAsString());
+        ServletInputStream inputStream = request.getRequest().getInputStream();
+        //如果文件流已读取则从缓存中获取请求体
+        if (Boolean.TRUE.equals(inputStream.isFinished())) {
+            sysLog.setRequestBody(request.getContentAsString());
+        } else {
+            // 否则直接从request中获取请求体
+            String requestBody = new String(inputStream.readAllBytes());
+            sysLog.setRequestBody(requestBody);
+        }
 
         //存储响应体内容
         String contentType = response.getContentType();

@@ -68,7 +68,6 @@ public class CommonService extends BaseServiceImpl {
         try {
             if (StpUtil.isLogin()) {
                 OnlineUserDTO onlineUserDTO = StpUtil.getTokenSession().getModel(LoginUtil.SYS_USER_KEY, OnlineUserDTO.class);
-                sysLog.setIpAddress(onlineUserDTO.getLoginAddress());
                 sysLog.setLocale(onlineUserDTO.getLocale());
                 sysLog.setLocaleLabel(onlineUserDTO.getLocaleLabel());
                 sysLog.setSysOrgId(onlineUserDTO.getOrgId());
