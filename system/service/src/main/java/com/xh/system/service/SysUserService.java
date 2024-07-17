@@ -159,13 +159,13 @@ public class SysUserService extends BaseServiceImpl {
                 save(sysUser);
             } catch (MyException e) {
                 Map<String, Object> resMap = new HashMap<>();
-                resMap.put("num", i + 1);
+                resMap.put("rowIndex", i);
                 resMap.put("error", e.getMessage());
                 res.add(resMap);
             }
         }
         //有错误信息直接手动回滚整个事务
-        if (res.size() > 0) {
+        if (!res.isEmpty()) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return res;
         }
@@ -178,13 +178,13 @@ public class SysUserService extends BaseServiceImpl {
     @Transactional(readOnly = true)
     public PageResult<SysUserGroup> queryUserGroupList(PageQuery<Map<String, Object>> pageQuery) {
         Map<String, Object> param = pageQuery.getParam();
-        String sql = "select * from sys_user_group where deleted = 0 ";
+        String sql = "select * from sys_user_group a where a.deleted = 0 ";
         if (CommonUtil.isNotEmpty(param.get("code"))) {
-            sql += " and code like '%' ? '%'";
+            sql += " and a.code like '%' ? '%'";
             pageQuery.addArg(param.get("code"));
         }
         if (CommonUtil.isNotEmpty(param.get("name"))) {
-            sql += " and name like '%' ? '%'";
+            sql += " and a.name like '%' ? '%'";
             pageQuery.addArg(param.get("name"));
         }
         pageQuery.setBaseSql(sql);

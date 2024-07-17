@@ -88,16 +88,20 @@ public class SysLoginService extends BaseServiceImpl {
         //尝试登录
         if (session == null && CommonUtil.isNotEmpty(username)) {
 
-            if (CommonUtil.isEmpty(captchaKey)) throw new MyException("非法登录");
-            if (CommonUtil.isEmpty(captchaCode)) throw new MyException("请输入图形验证码");
+            if(CommonUtil.isEmpty(params.get("isDemo"))) {
+                if (CommonUtil.isEmpty(captchaKey)) throw new MyException("非法登录");
+                if (CommonUtil.isEmpty(captchaCode)) throw new MyException("请输入图形验证码");
 
-            //验证图形验证码
-            ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-            String key = Constant.CAPTCHA_KEY_PREFIX + captchaKey;
-            AbstractCaptcha captcha = (AbstractCaptcha) valueOperations.get(key);
-            if (captcha == null) throw new MyException("验证码已失效");
-            boolean verify = captcha.verify(captchaCode);
-            if (!verify) throw new MyException("验证码错误");
+                //验证图形验证码
+                ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+                String key = Constant.CAPTCHA_KEY_PREFIX + captchaKey;
+                AbstractCaptcha captcha = (AbstractCaptcha) valueOperations.get(key);
+                //删除验证码
+                redisTemplate.delete(key);
+                if (captcha == null) throw new MyException("验证码已失效");
+                boolean verify = captcha.verify(captchaCode);
+                if (!verify) throw new MyException("验证码错误");
+            }
 
             String sql = "select * from sys_user where code = ? and enabled = 1";
             SysUser sysUser = baseJdbcDao.findBySql(SysUser.class, sql, username);
@@ -183,8 +187,6 @@ public class SysLoginService extends BaseServiceImpl {
             onlineUserDTO.setRoleName(orgRole.getRoleName());
             onlineUserDTO.setLoginTime(LocalDateTime.now());
             StpUtil.getTokenSession().set(LoginUtil.SYS_USER_KEY, onlineUserDTO);
-            //登录成功后删除验证码
-            redisTemplate.delete(key);
             return getCurrentLoginUserVO(true);
         } else {
             return getCurrentLoginUserVO(false);

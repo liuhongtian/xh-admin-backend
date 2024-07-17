@@ -11,6 +11,7 @@ import com.xh.file.service.FileOperationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -39,8 +40,8 @@ public class FileOperationController {
 
     @Operation(description = "文件下载（图片预览）")
     @GetMapping("/download")
-    public void downloadFile(DownloadFileDTO downloadFileDTO, @RequestHeader(value = "Range", defaultValue = "") String range, HttpServletResponse response) {
-        fileOperationService.downloadFile(downloadFileDTO, range, response);
+    public void downloadFile(DownloadFileDTO downloadFileDTO, @RequestHeader(value = "Range", defaultValue = "") String range, HttpServletRequest request, HttpServletResponse response) {
+        fileOperationService.downloadFile(downloadFileDTO, range,request, response);
     }
 
     @SaCheckPermission("system:file")

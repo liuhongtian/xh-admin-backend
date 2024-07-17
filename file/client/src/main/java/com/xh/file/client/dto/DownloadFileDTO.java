@@ -28,4 +28,6 @@ public class DownloadFileDTO {
     private Double scaleWidth = 60.0;
     @Schema(title = "视频帧图片预览", description = "仅视频文件有效，是可以传入需要预览视频第几帧图片，响应一个视频对应帧的图片流")
     private Integer videoFrameNum;
+    @Schema(title = "禁用协议缓存", description = "设置为true时，禁用协议缓存")
+    private Boolean noCache = false;
 }

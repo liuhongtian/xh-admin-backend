@@ -9,6 +9,7 @@ import com.xh.file.client.dto.DownloadFileDTO;
 import com.xh.file.client.entity.SysFile;
 import io.minio.*;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
@@ -157,10 +158,10 @@ public class FileOperationService extends BaseServiceImpl {
     }
 
     /**
-     * 文件下载，支持断点下载，图片压缩缩略图，视频文件抽帧
+     * 文件下载，支持断点续传，304协商缓存，图片压缩缩略图，视频文件抽帧
      */
     @Transactional
-    public void downloadFile(DownloadFileDTO downloadFileDTO, String range, HttpServletResponse response) {
+    public void downloadFile(DownloadFileDTO downloadFileDTO, String range, HttpServletRequest request, HttpServletResponse response) {
         long startByte = 0L;
         Long endByte = null;
         boolean hasRange = range != null && range.contains("bytes=") && range.contains("-");
@@ -177,7 +178,7 @@ public class FileOperationService extends BaseServiceImpl {
                     endByte = Long.parseLong(ranges[1]);
                 }
             } catch (NumberFormatException e) {
-                e.printStackTrace();
+                log.error("download 错误", e);
             }
         }
 
@@ -192,6 +193,38 @@ public class FileOperationService extends BaseServiceImpl {
             }
         }
 
+        // 获取对象的元数据信息
+        StatObjectResponse statObjectResponse = null;
+        try {
+            statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
+                    .bucket(bucket)
+                    .object(downloadFileDTO.getObject())
+                    .build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        //协商缓存，命中则返回304状态码，浏览器会从缓存中获取数据节省流量
+        if (!downloadFileDTO.getNoCache()) {
+            // 文件最后修改时间
+            long lastModified = statObjectResponse.lastModified().toInstant().toEpochMilli();
+
+            // 设置缓存相关的HTTP头
+            response.setDateHeader("Last-Modified", lastModified);
+            response.setHeader("Cache-Control", "public, max-age=3600");
+            response.setHeader("ETag", "\"" + lastModified + "\"");
+
+            // 检查缓存
+            long ifModifiedSince = request.getDateHeader("If-Modified-Since");
+            String ifNoneMatch = request.getHeader("If-None-Match");
+            request.getHeaderNames();
+            if (ifModifiedSince != -1 && ifNoneMatch != null && ifNoneMatch.equals("\"" + lastModified + "\"")) {
+                // 如果请求的缓存版本与服务器上的相同，则返回304状态码
+                response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+                return;
+            }
+        }
+
         GetObjectArgs.Builder builder = GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(downloadFileDTO.getObject())
@@ -203,10 +236,6 @@ public class FileOperationService extends BaseServiceImpl {
                 GetObjectResponse objectResponse = minioClient.getObject(builder.build());
                 OutputStream outputStream = response.getOutputStream()
         ) {
-            StatObjectResponse statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
-                    .bucket(bucket)
-                    .object(downloadFileDTO.getObject())
-                    .build());
             //如果图片预览缩略图，svg无须缩略
             if (downloadFileDTO.getIsScale() && statObjectResponse.contentType().startsWith("image/") && !downloadFileDTO.getObject().endsWith(".svg")) {
                 try {
