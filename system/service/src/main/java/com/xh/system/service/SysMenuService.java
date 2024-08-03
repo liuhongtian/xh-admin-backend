@@ -40,6 +40,14 @@ public class SysMenuService extends BaseServiceImpl {
             sql += " and enabled = ?";
             pageQuery.addArg(param.get("enabled"));
         }
+        if (CommonUtil.isNotEmpty(param.get("createTimeStart"))) {
+            sql += " and create_time >= ?";
+            pageQuery.addArg(param.get("createTimeStart"));
+        }
+        if (CommonUtil.isNotEmpty(param.get("createTimeEnd"))) {
+            sql += " and date_sub(create_time, interval 1 day) <= ?";
+            pageQuery.addArg(param.get("createTimeEnd"));
+        }
         if (flag.equals("selectParentMenu")) {
             sql += " and type in ('dir', 'menu')";
         }
@@ -85,7 +93,6 @@ public class SysMenuService extends BaseServiceImpl {
     public SysMenu getById(Serializable id) {
         return baseJdbcDao.findById(SysMenu.class, id);
     }
-
 
     /**
      * ids批量删除菜单
