@@ -61,7 +61,7 @@ public class CommonUtil {
     }
 
     /**
-     * 下划线转大写驼峰
+     * 下划线转小写驼峰
      */
     public static String toLowerCamel(String str) {
         return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, str);
