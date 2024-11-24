@@ -100,7 +100,9 @@ public class MyInterceptor extends SaInterceptor {
                                             boolean isSwitchProp = requestURI.endsWith("/switch_prop");
                                             return isDel || isSave || isSwitchProp;
                                         }).isHit();
-                                if(!hit) throw new MyException("演示账号不允许此操作");
+                                // 代码生成器不拦截
+                                boolean hitGenCode = SaRouter.match("/api/generator/**").isHit();
+                                if(!hit && !hitGenCode) throw new MyException("演示账号不允许此操作");
                             }
 
                             if (Boolean.TRUE.equals(user.getAutoRenewal())) {
