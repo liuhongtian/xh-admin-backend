@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.0</version>
+        <version>3.3.5</version>
         <relativePath/>
     </parent>
 
@@ -20,24 +20,25 @@
         <java.version>21</java.version>
         <!--    基础版本    -->
         <xh-admin.version>0.0.1-SNAPSHOT</xh-admin.version>
-        <spring-cloud.version>2023.0.2</spring-cloud.version>
-        <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
-        <minio.version>8.5.10</minio.version>
-        <springdoc-openapi-starter-webmvc-ui.version>2.5.0</springdoc-openapi-starter-webmvc-ui.version>
-        <guava.version>33.2.1-jre</guava.version>
-        <sa-token-spring-boot3-starter.version>1.38.0</sa-token-spring-boot3-starter.version>
-        <hutool-version>5.8.28</hutool-version>
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
+        <minio.version>8.5.13</minio.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.6.0</springdoc-openapi-starter-webmvc-ui.version>
+        <guava.version>33.3.1-jre</guava.version>
+        <sa-token-spring-boot3-starter.version>1.39.0</sa-token-spring-boot3-starter.version>
+        <hutool-version>5.8.33</hutool-version>
         <weixin-java-version>4.6.0</weixin-java-version>
-        <javacv-version>1.5.10</javacv-version>
+        <javacv-version>1.5.11</javacv-version>
         <ip2region-version>2.7.0</ip2region-version>
-        <xxl-job-version>2.4.1</xxl-job-version>
-        <fastjson2-version>2.0.51</fastjson2-version>
+        <xxl-job-version>2.4.2</xxl-job-version>
+        <fastjson2-version>2.0.53</fastjson2-version>
     </properties>
 
     <modules>
         <module>common</module>
         <module>system</module>
         <module>file</module>
+        <module>generator</module>
     </modules>
 
     <dependencies>
@@ -129,7 +130,7 @@
             </dependency>
             <dependency>
                 <groupId>com.xh</groupId>
-                <artifactId>wechat-client</artifactId>
+                <artifactId>generator-client</artifactId>
                 <version>${xh-admin.version}</version>
             </dependency>
             <dependency>

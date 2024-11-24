@@ -197,7 +197,7 @@ public class FileOperationService extends BaseServiceImpl {
         }
 
         // 获取对象的元数据信息
-        StatObjectResponse statObjectResponse = null;
+        StatObjectResponse statObjectResponse;
         try {
             statObjectResponse = minioClient.statObject(StatObjectArgs.builder()
                     .bucket(bucket)
@@ -264,7 +264,7 @@ public class FileOperationService extends BaseServiceImpl {
                     }
                     response.setHeader("Server", "XH-Admin-File");
                     //设置为206响应码，表示服务器支持断点下载
-                    response.setStatus(response.SC_PARTIAL_CONTENT);
+                    response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
                 }
                 //下载时表示总文件大小
                 if (downloadFileDTO.getDisposition().equals("attachment")) {
