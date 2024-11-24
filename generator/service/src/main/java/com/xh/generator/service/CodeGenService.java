@@ -428,7 +428,7 @@ public class CodeGenService extends BaseServiceImpl {
                 columns.addLast(col);
             }
             if (columns.stream().noneMatch(i -> "deleted".equals(i.getColumnName()))) {
-                var col = new GenTableColumnDTO("select", "deleted", "是否已删除", false, null, "deleted", "tinyint", "是否已删除", false, false, null, "Boolean", 1, true);
+                var col = new GenTableColumnDTO("select", "deleted", "是否已删除", false, null, "deleted", "bit", "是否已删除", false, false, null, "Boolean", 1, true);
                 columns.addLast(col);
             }
         }
