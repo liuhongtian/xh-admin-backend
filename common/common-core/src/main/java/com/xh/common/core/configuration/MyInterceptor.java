@@ -72,44 +72,36 @@ public class MyInterceptor extends SaInterceptor {
 
             this.auth = ignored -> {
                 // SaToken鉴权
-                SaRouter.match("/**")
-                        .notMatch(
-                                "/swagger-ui.html",
-                                "/swagger-ui.html/**",
-                                "/swagger-ui/**",
-                                "/v3/**"
-                        ).check(() -> {
-                            StpUtil.checkLogin();
-                            SysLoginUserInfoDTO userInfoDTO = LoginUtil.getSysUserInfo();
-                            SysUserDTO user = userInfoDTO.getUser();
+                StpUtil.checkLogin();
+                SysLoginUserInfoDTO userInfoDTO = LoginUtil.getSysUserInfo();
+                SysUserDTO user = userInfoDTO.getUser();
 
-                            // 演示站的演示账号部分操作不允许
-                            if(Boolean.TRUE.equals(user.getIsDemo())) {
-                                final String requestURI = request.getRequestURI();
-                                boolean hit = SaRouter.notMatch(
-                                                "/api/system/user/personalCenterSave",
-                                                "/api/file/operation/upload",
-                                                "/api/system/user/imports",
-                                                "/api/system/user/saveUserJobs",
-                                                "/api/system/user/saveUserGroup",
-                                                "/api/system/user/delUserGroup"
-                                        )
-                                        .notMatch(obj -> {
-                                            boolean isDel = requestURI.endsWith("/del");
-                                            boolean isSave = requestURI.endsWith("/save");
-                                            boolean isSwitchProp = requestURI.endsWith("/switch_prop");
-                                            return isDel || isSave || isSwitchProp;
-                                        }).isHit();
-                                // 代码生成器不拦截
-                                boolean hitGenCode = SaRouter.match("/api/generator/**").isHit();
-                                if(!hit && !hitGenCode) throw new MyException("演示账号不允许此操作");
-                            }
+                // 演示站的演示账号部分操作不允许
+                if(Boolean.TRUE.equals(user.getIsDemo())) {
+                    final String requestURI = request.getRequestURI();
+                    boolean hit = SaRouter.notMatch(
+                                    "/api/system/user/personalCenterSave",
+                                    "/api/file/operation/upload",
+                                    "/api/system/user/imports",
+                                    "/api/system/user/saveUserJobs",
+                                    "/api/system/user/saveUserGroup",
+                                    "/api/system/user/delUserGroup"
+                            )
+                            .notMatch(obj -> {
+                                boolean isDel = requestURI.endsWith("/del");
+                                boolean isSave = requestURI.endsWith("/save");
+                                boolean isSwitchProp = requestURI.endsWith("/switch_prop");
+                                return isDel || isSave || isSwitchProp;
+                            }).isHit();
+                    // 代码生成器不拦截
+                    boolean hitGenCode = SaRouter.match("/api/generator/**").isHit();
+                    if(!hit && !hitGenCode) throw new MyException("演示账号不允许此操作");
+                }
 
-                            if (Boolean.TRUE.equals(user.getAutoRenewal())) {
-                                //续签token过期时间
-                                StpUtil.renewTimeout(saTokenConfig.getTimeout());
-                            }
-                        });
+                if (Boolean.TRUE.equals(user.getAutoRenewal())) {
+                    //续签token过期时间
+                    StpUtil.renewTimeout(saTokenConfig.getTimeout());
+                }
             };
             return super.preHandle(request, response, handler);
         }
