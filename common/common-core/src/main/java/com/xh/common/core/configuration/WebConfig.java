@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -67,7 +68,7 @@ public class WebConfig implements WebMvcConfigurer {
      * 过滤器配置
      */
     @Bean
-    public FilterRegistrationBean filterRegistrationBean(){
+    public FilterRegistrationBean filterRegistrationBean() {
         FilterRegistrationBean<Filter> filterFilterRegistrationBean = new FilterRegistrationBean<>();
         filterFilterRegistrationBean.setFilter(myFilter);
         filterFilterRegistrationBean.setOrder(1);//执行的顺序
@@ -81,13 +82,22 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(@Nonnull InterceptorRegistry registry) {
         WebMvcConfigurer.super.addInterceptors(registry);
-        registry.addInterceptor(myInterceptor).addPathPatterns("/**");
+        registry.addInterceptor(myInterceptor)
+                .addPathPatterns("/**")
+                // 排除swagger文档
+                .excludePathPatterns(
+                        "/swagger-ui.html",
+                        "/swagger-ui.html/**",
+                        "/swagger-ui/**",
+                        "/v3/**"
+                );
     }
 
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         // 在头部添加，优先级别最高
         converters.addFirst(new MappingJackson2HttpMessageConverter(getDefaultObjectMapper()));
+        converters.addFirst(new ByteArrayHttpMessageConverter());
     }
 
 

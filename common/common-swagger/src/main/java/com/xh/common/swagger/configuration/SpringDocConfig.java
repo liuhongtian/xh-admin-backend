@@ -23,8 +23,8 @@ public class SpringDocConfig {
                 .specVersion(SpecVersion.V31)
                 .info(new Info().title("晓寒管理系统API").version("v1.0.0"))
                 .externalDocs(new ExternalDocumentation()
-                        .description("文档首页")
-                        .url("https://")
+                        .description("晓寒管理系统文档")
+                        .url("https://www.xhansky.cn")
                 )
                 //需要授权
                 .addSecurityItem(
