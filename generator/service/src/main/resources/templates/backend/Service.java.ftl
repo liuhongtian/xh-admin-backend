@@ -41,7 +41,7 @@ public class ${serviceName} extends BaseServiceImpl {
         Map<String, Object> param = pageQuery.getParam();
         if (param == null) param = new HashMap<>();
 
-        String sql = "select * from ${tableName} where deleted = 0 ";
+        String sql = "select * from ${tableName} where deleted is false ";
 
     <#list columns as field>
     <#if field.isQuery!false>
@@ -87,7 +87,7 @@ public class ${serviceName} extends BaseServiceImpl {
      * ids批量删除
      */
     @Transactional
-    public void del(List<Serializable> ids) {
+    public void del(List<Integer> ids) {
         log.info("批量删除${name}--");
         String sql = "update ${tableName} set deleted = 1 where ${idProp} in (:ids)";
         Map<String, Object> paramMap = new HashMap<>(){{

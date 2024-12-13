@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -49,14 +48,14 @@ public class SysOrgController {
     @SaCheckPermission(value = {"system:org:edit", "system:org:detail"}, mode = SaMode.OR)
     @Operation(description = "获取机构详情")
     @GetMapping("/get/{id}")
-    public RestResponse<SysOrg> getById(@PathVariable Serializable id) {
+    public RestResponse<SysOrg> getById(@PathVariable Integer id) {
         return RestResponse.success(sysOrgService.getById(id));
     }
 
     @SaCheckPermission("system:org:del")
     @Operation(description = "机构批量删除")
     @DeleteMapping("/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         sysOrgService.del(ids);
         return RestResponse.success();
     }

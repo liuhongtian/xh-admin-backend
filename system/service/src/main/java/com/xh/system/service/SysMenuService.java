@@ -31,7 +31,7 @@ public class SysMenuService extends BaseServiceImpl {
         Map<String, Object> param = pageQuery.getParam();
         if (param == null) param = new HashMap<>();
         String flag = CommonUtil.getString(param.get("flag"));
-        String sql = "select * from sys_menu where deleted = 0 ";
+        String sql = "select * from sys_menu where deleted is false ";
         if (CommonUtil.isNotEmpty(param.get("title"))) {
             sql += " and title like '%' ? '%'";
             pageQuery.addArg(param.get("title"));
@@ -74,12 +74,11 @@ public class SysMenuService extends BaseServiceImpl {
 
     @Transactional
     public SysMenu save(SysMenu sysMenu) {
-        String sql = "select count(1) from sys_menu where deleted = 0 and name = ?";
+        String sql = "select count(1) from sys_menu where deleted is false and name = ?";
         if (sysMenu.getId() != null) {
             sql += " and id <> %s ".formatted(sysMenu.getId());
         }
         Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class, sysMenu.getName());
-        assert  count != null;
         if (count > 0) throw new MyException("菜单name：%s重复！".formatted(sysMenu.getName()));
         if (sysMenu.getId() == null) baseJdbcDao.insert(sysMenu);
         else baseJdbcDao.update(sysMenu);
@@ -98,7 +97,7 @@ public class SysMenuService extends BaseServiceImpl {
      * ids批量删除菜单
      */
     @Transactional
-    public void del(List<Serializable> ids) {
+    public void del(List<Integer> ids) {
         log.info("批量删除菜单--");
         String sql = "update sys_menu set deleted = 1 where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>(){{

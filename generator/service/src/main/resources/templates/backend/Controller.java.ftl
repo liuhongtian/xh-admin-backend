@@ -49,14 +49,14 @@ public class ${entityName}Controller {
     @SaCheckPermission(value = {"${permissionPrefix}:edit", "${permissionPrefix}:detail"}, mode = SaMode.OR)
     @Operation(description = "${name}详情")
     @GetMapping("/get/{id}")
-    public RestResponse<${entityName}> getById(@PathVariable Serializable id) {
+    public RestResponse<${entityName}> getById(@PathVariable Integer id) {
         return RestResponse.success(${serviceVarName}.getById(id));
     }
 
     @SaCheckPermission("${permissionPrefix}:del")
     @Operation(description = "${name}删除")
     @DeleteMapping("/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         ${serviceVarName}.del(ids);
         return RestResponse.success();
     }

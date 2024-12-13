@@ -18,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -62,13 +61,13 @@ public class FileOperationController {
     @SaCheckPermission(value = {"system:file:edit", "system:file:detail"}, mode = SaMode.OR)
     @Operation(description = "获取文件详情")
     @GetMapping("/get/{id}")
-    public RestResponse<SysFile> getById(@PathVariable Serializable id) {
+    public RestResponse<SysFile> getById(@PathVariable Integer id) {
         return RestResponse.success(fileOperationService.getById(id));
     }
 
     @Operation(description = "删除文件")
     @DeleteMapping("/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         fileOperationService.del(ids);
         return RestResponse.success();
     }

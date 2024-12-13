@@ -76,7 +76,7 @@ public class FileOperationService extends BaseServiceImpl {
             String sha1 = CommonUtil.getFileSha1(multipartFile.getInputStream());
             String sql2 = "delete from sys_file where sha1 = ? and status = 4";
             primaryJdbcTemplate.update(sql2, sha1);
-            String sql = "select * from sys_file where sha1 = ? and deleted = 0 and status != 4";
+            String sql = "select * from sys_file where sha1 = ? and deleted is false and status != 4";
             //利用sha1判断文件是否一致，sha1查询文件是否已上传过，已上传则节省空间直接返回sysFile对象
             SysFile sysFile = baseJdbcDao.findBySql(SysFile.class, sql, sha1);
             if (sysFile != null) return sysFile;
@@ -348,7 +348,7 @@ public class FileOperationService extends BaseServiceImpl {
     /**
      * 批量id删除文件
      */
-    public void del(List<Serializable> ids) {
+    public void del(List<Integer> ids) {
         log.info("批量id删除文件--");
         String sql = "select * from sys_file where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>() {{

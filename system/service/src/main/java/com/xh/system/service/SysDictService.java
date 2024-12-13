@@ -31,7 +31,7 @@ public class SysDictService extends BaseServiceImpl {
     public PageResult<SysDictType> queryTypes(PageQuery<Map<String, Object>> pageQuery) {
         Map<String, Object> param = pageQuery.getParam();
         if (param == null) param = new HashMap<>();
-        String sql = "select * from sys_dict_type where deleted = 0 ";
+        String sql = "select * from sys_dict_type where deleted is false ";
         if (CommonUtil.isNotEmpty(param.get("name"))) {
             sql += " and name like '%' ? '%'";
             pageQuery.addArg(param.get("name"));
@@ -55,7 +55,7 @@ public class SysDictService extends BaseServiceImpl {
                     select a.*, b.id dict_type_id,b.name dict_type_name
                     from sys_dict_detail a
                     left join sys_dict_type b  on a.sys_dict_type_id = b.id
-                    where a.deleted = 0
+                    where a.deleted is false
                 """;
         if (CommonUtil.isNotEmpty(param.get("dictTypeId"))) {
             sql += " and sys_dict_type_id = ?";
@@ -98,7 +98,7 @@ public class SysDictService extends BaseServiceImpl {
     @Transactional
     public SysDictDetail saveDictDetail(SysDictDetail sysDictDetail) {
         String sql = """
-                select count(1) from sys_dict_detail where deleted = 0
+                select count(1) from sys_dict_detail where deleted is false
                 and sys_dict_type_id = '%s' and value = '%s'
                 """.formatted(sysDictDetail.getSysDictTypeId(), sysDictDetail.getValue());
         if (sysDictDetail.getId() != null) {
@@ -115,7 +115,7 @@ public class SysDictService extends BaseServiceImpl {
      * ids批量删除数据字典明细
      */
     @Transactional
-    public void delDetail(List<Serializable> ids) {
+    public void delDetail(List<Integer> ids) {
         log.info("批量删除数据字典明细--");
         String sql = "update sys_dict_detail set deleted = 1 where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>() {{

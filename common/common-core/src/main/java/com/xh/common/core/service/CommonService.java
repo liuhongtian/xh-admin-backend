@@ -49,7 +49,7 @@ public class CommonService extends BaseServiceImpl {
                          a.sys_role_id role_id,b.*
                     from sys_role_menu a
                     left join sys_menu b on a.sys_menu_id = b.id
-                    where a.deleted = 0 and b.deleted = 0 and a.sys_role_id = ?
+                    where a.deleted is false and b.deleted is false and a.sys_role_id = ?
                     order by b.`order` asc
                 """;
         //查询角色拥有的所有菜单权限
@@ -154,7 +154,7 @@ public class CommonService extends BaseServiceImpl {
                             case "$BJGX" -> """
                                     %s %s (
                                         WITH recursive tb as (
-                                            SELECT id from sys_org where deleted = 0 and parent_id = %s
+                                            SELECT id from sys_org where deleted is false and parent_id = %s
                                             UNION
                                             SELECT b.id from tb inner join sys_org b on b.parent_id = tb.id
                                         )
@@ -168,7 +168,7 @@ public class CommonService extends BaseServiceImpl {
                             case "$DQJSX" -> """
                                     %s %s (
                                         WITH recursive tb as (
-                                            SELECT id from sys_role where deleted = 0 and parent_id = %s
+                                            SELECT id from sys_role where deleted is false and parent_id = %s
                                             UNION
                                             SELECT b.id from tb inner join sys_role b on b.parent_id = tb.id
                                         )

@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +42,7 @@ public class SysDictController {
     @SaCheckPermission(value = {"system:dict:edit", "system:dict:detail"}, mode = SaMode.OR)
     @Operation(description = "获取字典明细详情")
     @GetMapping("/detail/get/{id}")
-    public RestResponse<SysDictDetail> getById(@PathVariable Serializable id) {
+    public RestResponse<SysDictDetail> getById(@PathVariable Integer id) {
         return RestResponse.success(sysDictService.getDictDetailById(id));
     }
 
@@ -57,7 +56,7 @@ public class SysDictController {
     @SaCheckPermission("system:dict:del")
     @Operation(description = "批量数据字典删除")
     @DeleteMapping("/detail/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         sysDictService.delDetail(ids);
         return RestResponse.success();
     }

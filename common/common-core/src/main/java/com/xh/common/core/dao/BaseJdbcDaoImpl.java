@@ -1,31 +1,25 @@
 package com.xh.common.core.dao;
 
-import com.xh.common.core.entity.AutoSet;
-import com.xh.common.core.utils.CommonUtil;
+import com.xh.common.core.dao.sql.EntityStaff;
+import com.xh.common.core.dao.sql.MysqlExecutor;
+import com.xh.common.core.dao.sql.PostgreSqlExecutor;
+import com.xh.common.core.dao.sql.SqlExecutor;
 import com.xh.common.core.utils.WebLogs;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
 import jakarta.annotation.Resource;
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Repository(value = "baseJdbcDao")
@@ -41,46 +35,24 @@ public class BaseJdbcDaoImpl implements BaseJdbcDao {
 
     @Override
     public <K> K findById(Class<K> clazz, JdbcTemplate jdbcTemplate, Serializable id) {
-        try {
-            K entity = clazz.getDeclaredConstructor().newInstance();
-            SqlStaff staff = getSql(entity, PersistenceType.FIND_BY_ID);
-            staff.setId(id);
-            return findById(entity, jdbcTemplate);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        SqlExecutor sqlExecutor = this.getSqlExecutor(this.getDbType(jdbcTemplate));
+        return sqlExecutor.findById(jdbcTemplate, clazz, id);
     }
 
     @Override
-    public <K> K findById(K entity) {
-        return this.findById(entity, primaryJdbcTemplate);
+    public <K> K findBySql(Class<K> clazz, String sql, Object... args) throws RuntimeException {
+        return findBySql(clazz, sql, primaryJdbcTemplate, args);
     }
 
     @Override
-    public <K> K findById(K entity, JdbcTemplate jdbcTemplate) {
-        SqlStaff staff = getSql(entity, PersistenceType.FIND_BY_ID);
-        SqlParameterSource params = new BeanPropertySqlParameterSource(staff.getSqlArgs());
-        NamedParameterJdbcTemplate template = new NamedParameterJdbcTemplate(jdbcTemplate);
-        return template.queryForObject(staff.getSql(), params, new BeanPropertyRowMapper<K>((Class<K>) entity.getClass()));
-    }
-
-    @Override
-    public <K> K findBySql(Class<K> classname, String sql, Object... args) throws RuntimeException {
-        return findBySql(classname, sql, primaryJdbcTemplate, args);
-    }
-
-    @Override
-    public <K> K findBySql(Class<K> classname, String sql, JdbcTemplate jdbcTemplate, Object... args) throws RuntimeException {
+    public <K> K findBySql(Class<K> clazz, String sql, JdbcTemplate jdbcTemplate, Object... args) throws RuntimeException {
         WebLogs.sql(sql, args);
+        SqlExecutor sqlExecutor = this.getSqlExecutor(this.getDbType(jdbcTemplate));
+        sql = sqlExecutor.convertSql(sql);
         K obj = null;
-        List<K> list = null;
-        if (Map.class.isAssignableFrom(classname)) {
-            list = (List<K>) jdbcTemplate.queryForList(sql, args);
-        } else {
-            list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(classname), args);
-        }
-        if (list.size() > 0) {
-            obj = list.get(0);
+        List<K> list = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(clazz), args);
+        if (!list.isEmpty()) {
+            obj = list.getFirst();
         }
         return obj;
     }
@@ -92,7 +64,8 @@ public class BaseJdbcDaoImpl implements BaseJdbcDao {
 
     @Override
     public <K> List<K> findList(Class<K> clazz, String sql, JdbcTemplate jdbcTemplate, Object... args) {
-        WebLogs.sql(sql);
+        SqlExecutor sqlExecutor = this.getSqlExecutor(this.getDbType(jdbcTemplate));
+        sql = sqlExecutor.convertSql(sql);
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<K>(clazz), args);
     }
 
@@ -109,23 +82,12 @@ public class BaseJdbcDaoImpl implements BaseJdbcDao {
     @Override
     public <K> PageResult<K> query(Class<K> clazz, PageQuery<?> pageQuery, JdbcTemplate jdbcTemplate) {
         String sql = pageQuery.getSql();
+        SqlExecutor sqlExecutor = this.getSqlExecutor(this.getDbType(jdbcTemplate));
+        sql = sqlExecutor.convertSql(sql);
         PageResult<K> pageResult = new PageResult<>();
         if (pageQuery.getIsPage()) {
-            String dbType = getDbType(jdbcTemplate);
-            String pageSql = "";
-            String totalSql = String.format("SELECT COUNT(1) FROM (%s) PAGE", sql);
-            if ("MySQL".equals(dbType)) {
-                // 构造mysql数据库的分页语句
-                pageSql = String.format("SELECT * FROM (%s) PAGE LIMIT %s,%s", sql, (pageQuery.getCurrentPage() - 1) * pageQuery.getPageSize(), pageQuery.getPageSize());
-            } else if ("Oracle".equals(dbType)) {
-                // 构造oracle数据库的分页语句
-                pageSql = """
-                        SELECT * FROM (
-                                SELECT temp.* ,ROWNUM ROW_NUM FROM (%s) temp WHERE ROWNUM <= %s
-                            ) WHERE ROW_NUM > %s
-                        """;
-                pageSql = String.format(pageSql, sql, pageQuery.getCurrentPage() * pageQuery.getPageSize(), (pageQuery.getCurrentPage() - 1) * pageQuery.getPageSize());
-            }
+            String pageSql = sqlExecutor.getPageSql(sql, pageQuery.getCurrentPage(), pageQuery.getPageSize());
+            String totalSql = "SELECT COUNT(1) FROM (%s) PAGE".formatted(sql);
             Integer total = jdbcTemplate.queryForObject(totalSql, Integer.class, pageQuery.getArgs().toArray());
             List<K> list = findList(clazz, pageSql, jdbcTemplate, pageQuery.getArgs().toArray());
             pageResult.setList(list);
@@ -141,108 +103,64 @@ public class BaseJdbcDaoImpl implements BaseJdbcDao {
     }
 
     @Override
-    public void insert(Collection<Object> entities) {
-        entities.forEach(this::insert);
+    public <E> void insert(E[] entities) {
+        this.insert(primaryJdbcTemplate, entities);
     }
 
     @Override
-    public void insert(Object entity) {
-        insert(entity, primaryJdbcTemplate);
-    }
-
-    @Override
-    public void insert(Object entity, JdbcTemplate jdbcTemplate) {
-        SqlStaff staff = getSql(entity, PersistenceType.INSERT);
-        WebLogs.sql(staff.getSql());
-        SqlParameterSource params = new BeanPropertySqlParameterSource(entity);
-        NamedParameterJdbcTemplate template = new NamedParameterJdbcTemplate(jdbcTemplate);
-        GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
-        template.update(staff.getSql(), params, generatedKeyHolder);
-        Integer key = generatedKeyHolder.getKey().intValue();
-        staff.setId(key);
-    }
-
-    @Override
-    public void update(Object entity) {
-        update(entity, primaryJdbcTemplate);
-    }
-
-    @Override
-    public void update(Object entity, JdbcTemplate jdbcTemplate) {
-        SqlStaff staff = getSql(entity, PersistenceType.UPDATE);
-        SqlParameterSource params = new BeanPropertySqlParameterSource(entity);
-        NamedParameterJdbcTemplate template = new NamedParameterJdbcTemplate(jdbcTemplate);
-        int rowsAffected = template.update(staff.getSql(), params);
-    }
-
-    private SqlStaff getSql(Object entity, PersistenceType persistenceType) {
-        Class<?> clazz = entity.getClass();
-        Table table = clazz.getAnnotation(Table.class);
-        String tableName = table.name();
-        if (CommonUtil.isEmpty(tableName)) tableName = CommonUtil.toLowerUnderscore(clazz.getSimpleName());
-        Collection<Field> fields = CommonUtil.getAllFields(clazz);
-        Map<String, String> columnMap = new LinkedHashMap<>();
-        Map<String, String> idMap = new HashMap<>();
-        for (Field field : fields) {
-            String fieldName = field.getName();
-            Transient ignoredField = field.getAnnotation(Transient.class);
-            if (ignoredField == null) {
-                Id id = field.getAnnotation(Id.class);
-                Column column = field.getAnnotation(Column.class);
-                String columnName = null;
-                if (column != null) columnName = column.name();
-                if (CommonUtil.isEmpty(columnName)) columnName = CommonUtil.toLowerUnderscore(fieldName);
-                columnMap.put(columnName, fieldName);
-                if (id != null) idMap.put(columnName, fieldName);
-
-                // 自动注入值
-                AutoSet autoSet = field.getAnnotation(AutoSet.class);
-                if (autoSet != null) {
-                    AutoSetFun[] autoSetFuns = autoSet.value();
-                    for (AutoSetFun autoSetFun : autoSetFuns) {
-                        autoSetFun.fun.exec(persistenceType, field, entity);
-                    }
-                }
-            }
+    public <E> void insert(JdbcTemplate jdbcTemplate, E[] entities) {
+        SqlExecutor sqlExecutor = this.getSqlExecutor(this.getDbType(jdbcTemplate));
+        for (E entity : entities) {
+            this.autoSet(PersistenceType.INSERT, entity);
         }
-        String sql = null;
-        if (persistenceType == PersistenceType.INSERT) {
-            String columnStr = columnMap.keySet().stream().collect(Collectors.joining("`,`", "`", "`"));
-            String valueStr = columnMap.values().stream().map(i -> ":" + i).collect(Collectors.joining(","));
-            sql = "INSERT INTO `%s` (%s) VALUES (%s)".formatted(tableName, columnStr, valueStr);
-        } else if (persistenceType == PersistenceType.UPDATE) {
-            String columnMapStr = columnMap.entrySet().stream().map(i -> String.format("`%s`=:%s", i.getKey(), i.getValue())).collect(Collectors.joining(","));
-            String idMapStr = idMap.entrySet().stream().map(i -> String.format("`%s`=:%s", i.getKey(), i.getValue())).collect(Collectors.joining(" and "));
-            sql = "UPDATE `%s` SET %s WHERE %s".formatted(tableName, columnMapStr, idMapStr);
-        } else if (persistenceType == PersistenceType.FIND_BY_ID) {
-            String columnMapStr = columnMap.entrySet().stream().map(i -> String.format("`%s` as `%s`", i.getKey(), i.getValue())).collect(Collectors.joining(","));
-            String idMapStr = idMap.entrySet().stream().map(i -> String.format("`%s`=:%s", i.getKey(), i.getValue())).collect(Collectors.joining(" and "));
-            sql = "select %s FROM `%s` WHERE %s".formatted(columnMapStr, tableName, idMapStr);
-        }
+        sqlExecutor.toInsert(jdbcTemplate, entities);
+    }
 
-        SqlStaff sqlStaff = new SqlStaff();
-        sqlStaff.setEntity(entity);
-        sqlStaff.setClazz(clazz);
-        sqlStaff.setTable(tableName);
-        sqlStaff.setColumnMap(columnMap);
-        sqlStaff.setIdMap(idMap);
-        sqlStaff.setPersistenceType(persistenceType);
-        sqlStaff.setSql(sql);
-        sqlStaff.setSqlArgs(entity);
+    @Override
+    public <E> void insert(E entity) {
+        this.insert(primaryJdbcTemplate, entity);
+    }
 
-        return sqlStaff;
+    @Override
+    public <E> void insert(JdbcTemplate jdbcTemplate, E entity) {
+        Object[] entities = {entity};
+        this.insert(jdbcTemplate, entities);
+    }
+
+    @Override
+    public <E> void update(E entity) {
+        update(primaryJdbcTemplate, entity);
+    }
+
+    @Override
+    public <E> void update(JdbcTemplate jdbcTemplate, E entity) {
+        SqlExecutor sqlExecutor = this.getSqlExecutor(this.getDbType(jdbcTemplate));
+        this.autoSet(PersistenceType.UPDATE, entity);
+        sqlExecutor.toUpdate(jdbcTemplate, entity);
+    }
+
+    @Override
+    public <E> void deleteById(Class<E> clazz, Serializable id) {
+        this.deleteById(clazz, primaryJdbcTemplate, id);
+    }
+
+    @Override
+    public <E> void deleteById(Class<E> clazz, JdbcTemplate jdbcTemplate, Serializable id) {
+        SqlExecutor sqlExecutor = this.getSqlExecutor(this.getDbType(jdbcTemplate));
+        sqlExecutor.toDeleteById(jdbcTemplate, clazz, id);
     }
 
     /**
      * 获取数据库类型
      */
-    private static String dbType = null;
+    private static final ConcurrentHashMap<JdbcTemplate, String> dbTypeMap = new ConcurrentHashMap<>();
 
     protected String getDbType(JdbcTemplate jdbcTemplate) {
+        String dbType = dbTypeMap.get(jdbcTemplate);
         if (dbType == null) {
             try (Connection connection = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
                 dbType = connection.getMetaData().getDatabaseProductName();
-                return dbType;
+                dbTypeMap.put(jdbcTemplate, dbType);
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
                 throw new RuntimeException(e);
@@ -251,37 +169,19 @@ public class BaseJdbcDaoImpl implements BaseJdbcDao {
         return dbType;
     }
 
+    private SqlExecutor getSqlExecutor(String dbType) {
+        return switch (dbType) {
+            case "MySQL" -> new MysqlExecutor();
+            case "PostgreSQL" -> new PostgreSqlExecutor();
+            default -> throw new RuntimeException("%s不支持".formatted(dbType));
+        };
+    }
 
-    @Data
-    static class SqlStaff {
-        private Object entity;
-
-        private Class<?> clazz;
-
-        private String table;
-
-        private PersistenceType persistenceType;
-
-        private Map<String, String> idMap;
-
-        private Map<String, String> columnMap;
-
-        private String sql;
-
-        private Object sqlArgs;
-
-        //设置主键值
-        public void setId(Object id) {
-            for (String fieldName : this.idMap.values()) {
-                Field field = CommonUtil.getField(this.clazz, fieldName);
-                field.setAccessible(true);
-                try {
-                    if (field.get(this.entity) == null)
-                        field.set(this.entity, id);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
+    /**
+     * 根据实体的 AutoSet注解自动注入值
+     */
+    private void autoSet(PersistenceType persistenceType, Object entity) {
+        EntityStaff entityStaff = EntityStaff.init(entity.getClass());
+        entityStaff.autoSet(persistenceType, entity);
     }
 }

@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
+
 /**
  * 数据源配置
  * 参考文档 <a href="https://docs.spring.io/spring-boot/docs/3.0.5/reference/htmlsingle/#howto.data-access.configure-custom-datasource">...</a>
@@ -17,30 +19,38 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Configuration(proxyBeanMethods = false)
 public class DataSourceConfiguration {
 
-    @Bean
-    @Primary
+    /**
+     * 第一数据源配置信息
+     */
+    @Bean("firstDataSourceProperties")
     @ConfigurationProperties("spring.datasource.first")
     public DataSourceProperties firstDataSourceProperties() {
         return new DataSourceProperties();
     }
 
     /**
-     * 第一数据源，主数据源
+     * 第一数据源
      */
-    @Bean
     @Primary
+    @Bean("firstDataSource")
     @ConfigurationProperties("spring.datasource.first.configuration")
-    public HikariDataSource firstDataSource(DataSourceProperties firstDataSourceProperties) {
-        return firstDataSourceProperties.initializeDataSourceBuilder().type(HikariDataSource.class).build();
+    public DataSource firstDataSource(@Qualifier("firstDataSourceProperties") DataSourceProperties properties) {
+        return properties.initializeDataSourceBuilder().type(HikariDataSource.class).build();
     }
 
-    @Bean
+    /**
+     * 第一数据源JdbcTemplate
+     */
     @Primary
-    public JdbcTemplate firstJdbcTemplate(HikariDataSource firstDataSource) {
-        return new JdbcTemplate(firstDataSource);
+    @Bean
+    public JdbcTemplate firstJdbcTemplate(@Qualifier("firstDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 
-    @Bean
+    /**
+     * 第二数据源配置信息
+     */
+    @Bean("secondDataSourceProperties")
     @ConfigurationProperties("spring.datasource.second")
     public DataSourceProperties secondDataSourceProperties() {
         return new DataSourceProperties();
@@ -49,15 +59,17 @@ public class DataSourceConfiguration {
     /**
      * 第二数据源
      */
-    @Bean
+    @Bean("secondDataSource")
     @ConfigurationProperties("spring.datasource.second.configuration")
-    public HikariDataSource secondDataSource(
-            @Qualifier("secondDataSourceProperties") DataSourceProperties secondDataSourceProperties) {
-        return secondDataSourceProperties.initializeDataSourceBuilder().type(HikariDataSource.class).build();
+    public DataSource secondDataSource(@Qualifier("secondDataSourceProperties") DataSourceProperties properties) {
+        return properties.initializeDataSourceBuilder().type(HikariDataSource.class).build();
     }
 
+    /**
+     * 第二数据源JdbcTemplate
+     */
     @Bean
-    public JdbcTemplate secondJdbcTemplate(@Qualifier("secondDataSource") HikariDataSource secondDataSource) {
-        return new JdbcTemplate(secondDataSource);
+    public JdbcTemplate secondJdbcTemplate(@Qualifier("secondDataSource") DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
     }
 }

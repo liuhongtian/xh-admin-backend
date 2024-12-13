@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -50,14 +49,14 @@ public class SysMenuController {
     @SaCheckPermission(value = {"system:menu:edit", "system:menu:detail"}, mode = SaMode.OR)
     @Operation(description = "获取菜单详情")
     @GetMapping("/get/{id}")
-    public RestResponse<SysMenu> getById(@PathVariable Serializable id) {
+    public RestResponse<SysMenu> getById(@PathVariable Integer id) {
         return RestResponse.success(sysMenuService.getById(id));
     }
 
     @SaCheckPermission("system:menu:del")
     @Operation(description = "菜单批量删除")
     @DeleteMapping("/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         sysMenuService.del(ids);
         return RestResponse.success();
     }

@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -50,14 +49,14 @@ public class SysDataPermissionController {
     @SaCheckPermission(value = {"system:dataPermission:edit", "system:dataPermission:detail"}, mode = SaMode.OR)
     @Operation(description = "获取数据权限详情")
     @GetMapping("/get/{id}")
-    public RestResponse<SysDataPermission> getById(@PathVariable Serializable id) {
+    public RestResponse<SysDataPermission> getById(@PathVariable Integer id) {
         return RestResponse.success(sysDataPermissionService.getById(id));
     }
 
     @SaCheckPermission("system:dataPermission:del")
     @Operation(description = "数据权限批量删除")
     @DeleteMapping("/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         sysDataPermissionService.del(ids);
         return RestResponse.success();
     }

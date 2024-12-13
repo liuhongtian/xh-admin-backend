@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -45,14 +44,14 @@ public class SysRoleController {
     @SaCheckPermission(value = {"system:role:edit", "system:role:detail"}, mode = SaMode.OR)
     @Operation(description = "获取角色详情")
     @GetMapping("/get/{id}")
-    public RestResponse<SysRole> getById(@PathVariable Serializable id) {
+    public RestResponse<SysRole> getById(@PathVariable Integer id) {
         return RestResponse.success(sysRoleService.getById(id));
     }
 
     @SaCheckPermission("system:role:del")
     @Operation(description = "角色批量删除")
     @DeleteMapping("/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         sysRoleService.del(ids);
         return RestResponse.success();
     }
@@ -66,8 +65,8 @@ public class SysRoleController {
 
     @Operation(description = "查询角色的数据权限")
     @GetMapping("/queryRoleDataPermission")
-    public RestResponse<List<SysRoleDataPermission>> queryRoleDataPermission(@RequestParam Map<String, Object> param) {
-        List<SysRoleDataPermission> roleDataPermission = sysRoleService.queryRoleDataPermission(param);
+    public RestResponse<List<SysRoleDataPermission>> queryRoleDataPermission(SysRolePermissionDTO sysRolePermissionDTO) {
+        List<SysRoleDataPermission> roleDataPermission = sysRoleService.queryRoleDataPermission(sysRolePermissionDTO);
         return RestResponse.success(roleDataPermission);
     }
 

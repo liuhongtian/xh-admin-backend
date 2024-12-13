@@ -1,7 +1,6 @@
 package com.xh.system.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import cn.dev33.satoken.annotation.SaMode;
 import com.xh.common.core.entity.SysLog;
 import com.xh.common.core.web.PageQuery;
 import com.xh.common.core.web.PageResult;
@@ -12,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -35,14 +33,14 @@ public class SysLogController {
     @SaCheckPermission("system:log:detail")
     @Operation(description = "获取日志详情")
     @GetMapping("/get/{id}")
-    public RestResponse<SysLog> getById(@PathVariable Serializable id) {
+    public RestResponse<SysLog> getById(@PathVariable Integer id) {
         return RestResponse.success(sysLogService.getById(id));
     }
 
     @SaCheckPermission("system:log:del")
     @Operation(description = "日志批量删除")
     @DeleteMapping("/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         sysLogService.del(ids);
         return RestResponse.success();
     }

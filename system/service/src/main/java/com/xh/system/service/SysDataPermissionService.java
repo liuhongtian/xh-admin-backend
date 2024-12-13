@@ -37,7 +37,7 @@ public class SysDataPermissionService extends BaseServiceImpl {
     @Transactional(readOnly = true)
     public PageResult<SysDataPermission> query(PageQuery<Map<String, Object>> pageQuery) {
         Map<String, Object> param = pageQuery.getParam();
-        String sql = "select id,name,expression,create_time,update_time,create_by,update_by from sys_data_permission where deleted = 0 ";
+        String sql = "select id,name,expression,create_time,update_time,create_by,update_by from sys_data_permission where deleted is false ";
         if (CommonUtil.isNotEmpty(param.get("name"))) {
             sql += " and name like '%' ? '%'";
             pageQuery.addArg(param.get("name"));
@@ -69,7 +69,7 @@ public class SysDataPermissionService extends BaseServiceImpl {
      * ids批量删除数据权限
      */
     @Transactional
-    public void del(List<Serializable> ids) {
+    public void del(List<Integer> ids) {
         log.info("批量删除数据权限--");
         String sql = "update sys_data_permission set deleted = 1 where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>() {{

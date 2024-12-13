@@ -52,6 +52,7 @@ public class MyInterceptor extends SaInterceptor {
         }
 
         if (handler instanceof HandlerMethod handlerMethod) {
+            final var requestURI = request.getRequestURI();
             SysLog sysLog = MyContext.getSysLog();
             Class<?> controllerClass = handlerMethod.getBeanType();
             Tag tag = controllerClass.getAnnotation(Tag.class);
@@ -78,7 +79,6 @@ public class MyInterceptor extends SaInterceptor {
 
                 // 演示站的演示账号部分操作不允许
                 if(Boolean.TRUE.equals(user.getIsDemo())) {
-                    final String requestURI = request.getRequestURI();
                     boolean hit = SaRouter.notMatch(
                                     "/api/system/user/personalCenterSave",
                                     "/api/file/operation/upload",
