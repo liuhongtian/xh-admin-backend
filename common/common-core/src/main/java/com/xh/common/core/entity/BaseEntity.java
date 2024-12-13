@@ -2,6 +2,8 @@ package com.xh.common.core.entity;
 
 import com.xh.common.core.dao.AutoSetFun;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +17,7 @@ public class BaseEntity<I extends Serializable> implements Serializable {
 
     @Schema(title = "主键ID")
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     protected I id;
 
     @Schema(title = "创建时间")

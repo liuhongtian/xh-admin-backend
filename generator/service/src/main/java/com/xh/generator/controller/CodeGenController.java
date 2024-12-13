@@ -21,7 +21,6 @@ import org.springframework.boot.system.ApplicationHome;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -56,20 +55,20 @@ public class CodeGenController {
     @SaCheckPermission(value = {"generator:edit", "generator:detail"}, mode = SaMode.OR)
     @Operation(description = "获取代码生成详情")
     @GetMapping("/get/{id}")
-    public RestResponse<GenTable> getById(@PathVariable Serializable id) {
+    public RestResponse<GenTable> getById(@PathVariable Integer id) {
         return RestResponse.success(codeGenService.getById(id));
     }
 
     @Operation(description = "删除代码生成")
     @DeleteMapping("/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         codeGenService.del(ids);
         return RestResponse.success();
     }
 
     @Operation(description = "生成代码")
     @PostMapping("/generate/{id}")
-    public void generate(@PathVariable Serializable id) throws IOException, TemplateException {
+    public void generate(@PathVariable Integer id) throws IOException, TemplateException {
         if (!"development".equals(env)) {
             throw new MyException("仅开发环境可操作！");
         }
@@ -78,7 +77,7 @@ public class CodeGenController {
 
     @Operation(description = "代码zip文件下载")
     @GetMapping("/getCodeZipFile/{id}")
-    public void getCodeZipFile(@PathVariable Serializable id, HttpServletResponse response) throws IOException, TemplateException {
+    public void getCodeZipFile(@PathVariable Integer id, HttpServletResponse response) throws IOException, TemplateException {
         codeGenService.getCodeZipFile(id, response.getOutputStream());
     }
 

@@ -108,14 +108,14 @@ public class SysUserController {
     @SaCheckPermission(value = {"system:user:edit", "system:user:detail"}, mode = SaMode.OR)
     @Operation(description = "获取用户详情")
     @GetMapping("/get/{id}")
-    public RestResponse<SysUser> getById(@PathVariable Serializable id) {
+    public RestResponse<SysUser> getById(@PathVariable Integer id) {
         return RestResponse.success(sysUserService.getById(id));
     }
 
     @SaCheckPermission("system:user:del")
     @Operation(description = "用户批量删除")
     @DeleteMapping("/del")
-    public RestResponse<?> del(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> del(@RequestParam List<Integer> ids) {
         sysUserService.del(ids);
         return RestResponse.success();
     }
@@ -145,14 +145,14 @@ public class SysUserController {
     @SaCheckPermission(value = {"system:userGroup:edit", "system:userGroup:detail"}, mode = SaMode.OR)
     @Operation(description = "id获取用户组详情")
     @GetMapping("/getUserGroup/{id}")
-    public RestResponse<SysUserGroup> getUserGroupById(@PathVariable Serializable id) {
+    public RestResponse<SysUserGroup> getUserGroupById(@PathVariable Integer id) {
         return RestResponse.success(sysUserService.getUserGroupById(id));
     }
 
     @SaCheckPermission("system:userGroup:del")
     @Operation(description = "ids批量删除用户组")
     @DeleteMapping("/delUserGroup")
-    public RestResponse<?> delUserGroup(@RequestParam List<Serializable> ids) {
+    public RestResponse<?> delUserGroup(@RequestParam List<Integer> ids) {
         sysUserService.delUserGroup(ids);
         return RestResponse.success();
     }
@@ -160,7 +160,7 @@ public class SysUserController {
     @SaCheckPermission(value = {"system:user", "system:userGroup"}, mode = SaMode.OR)
     @Operation(description = "获取用户或者用户组的岗位信息")
     @GetMapping("/getUserJobs")
-    public RestResponse<List<SysUserJob>> getUserJobs(@RequestParam Map<String, Object> param) {
+    public RestResponse<List<SysUserJob>> getUserJobs(SysUserJob param) {
         return RestResponse.success(sysUserService.getUserJobs(param));
     }
 
@@ -175,7 +175,7 @@ public class SysUserController {
     @SaCheckPermission(value = {"system:user:detail"}, mode = SaMode.OR)
     @Operation(description = "id获取用户所在的所有用户组信息")
     @GetMapping("/getUserGroups/{id}")
-    public RestResponse<List<SysUserGroup>> getUserGroups(@PathVariable Serializable id) {
+    public RestResponse<List<SysUserGroup>> getUserGroups(@PathVariable Integer id) {
         return RestResponse.success(sysUserService.getUserGroups(id));
     }
 

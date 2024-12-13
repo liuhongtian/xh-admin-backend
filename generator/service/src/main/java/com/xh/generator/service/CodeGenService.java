@@ -51,7 +51,7 @@ public class CodeGenService extends BaseServiceImpl {
         Map<String, Object> param = pageQuery.getParam();
         String sql = "select id, table_name, table_comment, entity_name, name, service, module, author, " +
                      " create_time " +
-                     "from gen_table a where deleted = 0 ";
+                     "from gen_table a where deleted is false ";
         if (CommonUtil.isNotEmpty(param.get("tableName"))) {
             sql += " and table_name like '%' ? '%'";
             pageQuery.addArg(param.get("tableName"));
@@ -106,7 +106,7 @@ public class CodeGenService extends BaseServiceImpl {
     /**
      * 批量id删除代码生成
      */
-    public void del(List<Serializable> ids) {
+    public void del(List<Integer> ids) {
         log.info("批量id删除代码生成--");
         String sql = "delete from gen_table where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>() {{
@@ -530,7 +530,7 @@ public class CodeGenService extends BaseServiceImpl {
     public void transition(GenTableColumnDTO col, JSONObject object) {
         if (Arrays.asList("int", "double", "float").contains(col.getFormType())) {
             object.put("type", "number");
-        } else if (Arrays.asList("rate").contains(col.getFormType())) {
+        } else if (List.of("rate").contains(col.getFormType())) {
             object.put("type", "text");
         }
     }

@@ -33,7 +33,7 @@ public class SysLogService extends BaseServiceImpl {
         String sql = """
                  select a.id, a.token,a.method,a.url,a.ip,a.ip_address,a.tag,a.operation,a.start_time,a.end_time,a.time,a.status,
                  a.locale, a.locale_label, a.sys_org_id, a.org_name, a.sys_role_id, a.role_name, a.create_by, a.create_time, b.name
-                 from sys_log a left join sys_user b on b.id = a.create_by where a.deleted = 0
+                 from sys_log a left join sys_user b on b.id = a.create_by where a.deleted is false
                 """;
         if (CommonUtil.isNotEmpty(param.get("token"))) {
             sql += " and a.token = ? ";
@@ -100,7 +100,7 @@ public class SysLogService extends BaseServiceImpl {
      * ids批量删除日志
      */
     @Transactional
-    public void del(List<Serializable> ids) {
+    public void del(List<Integer> ids) {
         log.info("批量删除日志--");
         String sql = "update sys_log set deleted = 1 where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>() {{

@@ -6,7 +6,6 @@ import com.xh.common.core.web.PageResult;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -14,10 +13,6 @@ public interface BaseJdbcDao {
     <K> K findById(Class<K> clazz, Serializable id);
 
     <K> K findById(Class<K> clazz, JdbcTemplate jdbcTemplate, Serializable id);
-
-    <K> K findById(K entity);
-
-    <K> K findById(K entity, JdbcTemplate jdbcTemplate);
 
     <K> K findBySql(Class<K> classname, String sql, Object... args) throws MyException;
 
@@ -33,13 +28,19 @@ public interface BaseJdbcDao {
 
     <K> PageResult<K> query(Class<K> clazz, PageQuery<?> pageQuery, JdbcTemplate jdbcTemplate);
 
-    void insert(Collection<Object> entities);
+    <E> void insert(JdbcTemplate jdbcTemplate, E[] entities);
 
-    void insert(Object entity);
+    <E> void insert(E[] entities);
 
-    void insert(Object entity, JdbcTemplate jdbcTemplate);
+    <E> void insert(E entity);
 
-    void update(Object entity);
+    <E> void insert(JdbcTemplate jdbcTemplate, E entity);
 
-    void update(Object entity, JdbcTemplate jdbcTemplate);
+    <E> void update(E entity);
+
+    <E> void update(JdbcTemplate jdbcTemplate, E entity);
+
+    <E> void deleteById(Class<E> clazz, Serializable id);
+
+    <E> void deleteById(Class<E> clazz, JdbcTemplate jdbcTemplate, Serializable id);
 }

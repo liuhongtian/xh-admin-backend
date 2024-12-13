@@ -103,7 +103,7 @@ public class SysLoginService extends BaseServiceImpl {
                 if (!verify) throw new MyException("验证码错误");
             }
 
-            String sql = "select * from sys_user where code = ? and enabled = 1";
+            String sql = "select * from sys_user where code = ? and enabled is true";
             SysUser sysUser = baseJdbcDao.findBySql(SysUser.class, sql, username);
 
             if (sysUser == null) throw new MyException("账号不存在");
@@ -334,14 +334,14 @@ public class SysLoginService extends BaseServiceImpl {
                         FROM
                             sys_user_job
                         WHERE
-                           type = 1 AND enabled = 1 AND user_id = ?
+                           type = 1 AND enabled is true AND user_id = ?
                         UNION
                         SELECT
                             c.sys_org_id, c.sys_role_id
                         FROM
                             sys_user_group_member a
                             LEFT JOIN sys_user_group b ON b.id = a.sys_user_group_id
-                            LEFT JOIN sys_user_job c ON b.id = c.user_id AND c.type = 2 AND c.enabled = 1
+                            LEFT JOIN sys_user_job c ON b.id = c.user_id AND c.type = 2 AND c.enabled is true
                         WHERE
                             a.sys_user_id = ?
                     ) tem

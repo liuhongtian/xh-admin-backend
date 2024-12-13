@@ -32,7 +32,7 @@ public class SysUserService extends BaseServiceImpl {
     @Transactional(readOnly = true)
     public PageResult<SysUser> query(PageQuery<Map<String, Object>> pageQuery) {
         Map<String, Object> param = pageQuery.getParam();
-        String sql = "select * from sys_user where deleted = 0 ";
+        String sql = "select * from sys_user where deleted is false ";
         if (CommonUtil.isNotEmpty(param.get("code"))) {
             sql += " and code like '%' ? '%'";
             pageQuery.addArg(param.get("code"));
@@ -93,7 +93,7 @@ public class SysUserService extends BaseServiceImpl {
      */
     @Transactional
     public SysUser save(SysUser sysUser) {
-        String sql = "select count(1) from sys_user where deleted = 0 and code = ? ";
+        String sql = "select count(1) from sys_user where deleted is false and code = ? ";
         if (sysUser.getId() != null) sql += " and id <> " + sysUser.getId();
         Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class, sysUser.getCode());
         assert count != null;
@@ -137,7 +137,7 @@ public class SysUserService extends BaseServiceImpl {
      * ids批量删除用户
      */
     @Transactional
-    public void del(List<Serializable> ids) {
+    public void del(List<Integer> ids) {
         log.info("批量删除用户--");
         String sql = "update sys_user set deleted = 1 where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>() {{
@@ -178,7 +178,7 @@ public class SysUserService extends BaseServiceImpl {
     @Transactional(readOnly = true)
     public PageResult<SysUserGroup> queryUserGroupList(PageQuery<Map<String, Object>> pageQuery) {
         Map<String, Object> param = pageQuery.getParam();
-        String sql = "select * from sys_user_group a where a.deleted = 0 ";
+        String sql = "select * from sys_user_group a where a.deleted is false ";
         if (CommonUtil.isNotEmpty(param.get("code"))) {
             sql += " and a.code like '%' ? '%'";
             pageQuery.addArg(param.get("code"));
@@ -197,7 +197,7 @@ public class SysUserService extends BaseServiceImpl {
      */
     @Transactional
     public SysUserGroup saveUserGroup(SysUserGroup sysUserGroup) {
-        String sql = "select count(1) from sys_user_group where deleted = 0 and name = ? ";
+        String sql = "select count(1) from sys_user_group where deleted is false and name = ? ";
         if (sysUserGroup.getId() != null) sql += " and id <> " + sysUserGroup.getId();
         Integer count = primaryJdbcTemplate.queryForObject(sql, Integer.class, sysUserGroup.getName());
         assert count != null;
@@ -251,7 +251,7 @@ public class SysUserService extends BaseServiceImpl {
      * ids批量删除用户组
      */
     @Transactional
-    public void delUserGroup(List<Serializable> ids) {
+    public void delUserGroup(List<Integer> ids) {
         log.info("ids批量删除用户组--");
         String sql = "update sys_user_group set deleted = 1 where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>() {{
@@ -264,9 +264,9 @@ public class SysUserService extends BaseServiceImpl {
      * 获取用户或者用户组的岗位信息
      */
     @Transactional(readOnly = true)
-    public List<SysUserJob> getUserJobs(Map<String, Object> param) {
+    public List<SysUserJob> getUserJobs(SysUserJob param) {
         List<Object> args = new ArrayList<>();
-        args.add(param.get("userId"));
+        args.add(param.getUserId());
         String sql = """
                     select
                         a.*,
@@ -277,7 +277,7 @@ public class SysUserService extends BaseServiceImpl {
                     left join sys_role c on c.id = a.sys_role_id
                     where a.user_id = ?
                 """;
-        Object type = param.get("type");
+        Object type = param.getType();
         if (CommonUtil.isNotEmpty(type)) {
             sql += " and a.type = ? ";
             args.add(type);

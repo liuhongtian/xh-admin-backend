@@ -38,7 +38,7 @@ public class SysRoleService extends BaseServiceImpl {
     @Transactional(readOnly = true)
     public PageResult<SysRole> query(PageQuery<Map<String, Object>> pageQuery) {
         Map<String, Object> param = pageQuery.getParam();
-        String sql = "select * from sys_role where deleted = 0 ";
+        String sql = "select * from sys_role where deleted is false ";
         if (CommonUtil.isNotEmpty(param.get("name"))) {
             sql += " and name like '%' ? '%'";
             pageQuery.addArg(param.get("name"));
@@ -107,7 +107,7 @@ public class SysRoleService extends BaseServiceImpl {
      * ids批量删除角色
      */
     @Transactional
-    public void del(List<Serializable> ids) {
+    public void del(List<Integer> ids) {
         log.info("批量删除角色--");
         String sql = "update sys_role set deleted = 1 where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>() {{
@@ -124,7 +124,7 @@ public class SysRoleService extends BaseServiceImpl {
         log.info("查询角色可配置的所有菜单权限---");
         if (param == null) param = new HashMap<>();
         List<Object> args = new LinkedList<>();
-        String sql = "select * from sys_menu where deleted = 0 ";
+        String sql = "select * from sys_menu where deleted is false ";
         //如果角色隶属于某个角色，那此角色只能维护隶属角色所拥有的角色权限
         if (CommonUtil.isNotEmpty(param.get("parentId"))) {
             sql += " and id in ( select sys_menu_id from sys_role_menu where sys_role_id = ?) ";
@@ -137,9 +137,9 @@ public class SysRoleService extends BaseServiceImpl {
     /**
      * 查询角色的数据权限
      */
-    public List<SysRoleDataPermission> queryRoleDataPermission(Map<String, Object> param) {
-        String sql = "select * from sys_role_data_permission where deleted = 0 and sys_role_id = ? ";
-        return baseJdbcDao.findList(SysRoleDataPermission.class, sql, param.get("sysRoleId"));
+    public List<SysRoleDataPermission> queryRoleDataPermission(SysRolePermissionDTO sysRolePermissionDTO) {
+        String sql = "select * from sys_role_data_permission where deleted is false and sys_role_id = ? ";
+        return baseJdbcDao.findList(SysRoleDataPermission.class, sql, sysRolePermissionDTO.getSysRoleId());
     }
 
     /**

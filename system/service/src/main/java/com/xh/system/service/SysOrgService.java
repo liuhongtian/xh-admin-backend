@@ -29,7 +29,7 @@ public class SysOrgService extends BaseServiceImpl {
     public PageResult<SysOrg> queryOrgTree(String name) {
         if (CommonUtil.isEmpty(name)) {
             String sql = """
-                    SELECT * from sys_org where deleted = 0
+                    SELECT * from sys_org where deleted is false
                     """;
             List<SysOrg> list = baseJdbcDao.findList(SysOrg.class, sql);
             return new PageResult<>(list, list.size());
@@ -37,7 +37,7 @@ public class SysOrgService extends BaseServiceImpl {
         //递归查询树
         String sql = """
                 WITH recursive tb as (
-                	SELECT * from sys_org where deleted = 0 and name like '%' ? '%'
+                	SELECT * from sys_org where deleted is false and name like '%' ? '%'
                 	UNION ALL
                 	SELECT b.* from tb inner join sys_org b on b.id = tb.parent_id
                 )
@@ -55,7 +55,7 @@ public class SysOrgService extends BaseServiceImpl {
         Map<String, Object> param = pageQuery.getParam();
         String sql = """
                 select a.*, b.name parent_name from sys_org a
-                left join sys_org b on a.parent_id = b.id where a.deleted = 0
+                left join sys_org b on a.parent_id = b.id where a.deleted is false
                 """;
         if (CommonUtil.isNotEmpty(param.get("code"))) {
             sql += " and a.code like '%' ? '%'";
@@ -97,7 +97,7 @@ public class SysOrgService extends BaseServiceImpl {
      * ids批量删除机构
      */
     @Transactional
-    public void del(List<Serializable> ids) {
+    public void del(List<Integer> ids) {
         log.info("批量删除机构--");
         String sql = "update sys_org set deleted = 1 where id in (:ids)";
         Map<String, Object> paramMap = new HashMap<>() {{
