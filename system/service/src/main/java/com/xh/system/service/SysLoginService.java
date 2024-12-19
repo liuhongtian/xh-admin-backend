@@ -270,7 +270,10 @@ public class SysLoginService extends BaseServiceImpl {
                 })
                 //排序
                 .sorted((a, b) -> {
-                    if (pageQuery.getOrderProp() == null || pageQuery.getOrderDirection() == null) return 0;
+                    if (pageQuery.getOrderProp() == null || pageQuery.getOrderDirection() == null) {
+                        pageQuery.setOrderProp("loginTime");
+                        pageQuery.setOrderDirection(PageQuery.OrderDirection.desc);
+                    }
                     try {
                         Field field = CommonUtil.getField(OnlineUserDTO.class, pageQuery.getOrderProp());
                         if (field == null) return 0;
@@ -279,7 +282,7 @@ public class SysLoginService extends BaseServiceImpl {
                         Object bVal = field.get(b);
                         if (aVal != null && bVal != null) {
                             var px = aVal.toString().compareTo(bVal.toString());
-                            if (pageQuery.getOrderDirection() == PageQuery.OrderDirection.asc) {
+                            if (pageQuery.getOrderDirection() == PageQuery.OrderDirection.desc) {
                                 return -px;
                             }
                             return px;
