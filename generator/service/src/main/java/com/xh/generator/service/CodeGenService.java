@@ -20,7 +20,6 @@ import freemarker.template.TemplateException;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -112,7 +111,7 @@ public class CodeGenService extends BaseServiceImpl {
         Map<String, Object> paramMap = new HashMap<>() {{
             put("ids", ids);
         }};
-        primaryNPJdbcTemplate.query(sql, paramMap, new BeanPropertyRowMapper<>(GenTable.class));
+        primaryNPJdbcTemplate.update(sql, paramMap);
     }
 
     /**
