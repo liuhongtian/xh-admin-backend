@@ -35,14 +35,12 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -150,19 +148,28 @@ public class SysLoginService extends BaseServiceImpl {
                 baseJdbcDao.update(sysUser);
             }
 
-            //不允许重复登录，则将已登录的强制下线
+            //获取用户岗位角色
+            List<SysOrgRoleDTO> roles = getUserRoles(sysUser.getId());
+            if (roles.isEmpty()) {
+                throw new MyException("该用户未分配角色，无法登录!");
+            }
+
+            //如果账号不允许重复登录，则将已登录的强制下线
             if (Boolean.FALSE.equals(sysUser.getAllowRepeat())) {
                 StpUtil.kickout(sysUser.getId(), "WEB");
             }
 
+            // 登录
             StpUtil.login(sysUser.getId(), "WEB");
-            //刷新用户信息和权限缓存
-            refreshUserPermission(sysUser.getId());
             session = StpUtil.getSession();
 
-            SysLoginUserInfoDTO loginUserInfoDTO = session.getModel(LoginUtil.SYS_USER_KEY, SysLoginUserInfoDTO.class);
-            List<SysOrgRoleDTO> roles = loginUserInfoDTO.getRoles();
-            if (roles == null || roles.isEmpty()) throw new MyException("当前账号未分配角色，无法登录！");
+            // 刷新用户信息和权限缓存
+            SysUserDTO sysUserDTO = new SysUserDTO();
+            BeanUtils.copyProperties(sysUser, sysUserDTO);
+            SysLoginUserInfoDTO loginUserInfoDTO = new SysLoginUserInfoDTO();
+            loginUserInfoDTO.setUser(sysUserDTO);
+            loginUserInfoDTO.setRoles(roles);
+            session.set(LoginUtil.SYS_USER_KEY, loginUserInfoDTO);
 
             UserAgent ua = UserAgentUtil.parse(request.getHeader(Header.USER_AGENT.toString()));
             SysLog sysLog = MyContext.getSysLog();
@@ -317,13 +324,9 @@ public class SysLoginService extends BaseServiceImpl {
     }
 
     /**
-     * 刷新用户信息和权限进session缓存
+     * 获取用户岗位角色
      */
-    public void refreshUserPermission(Object userId) {
-        SaSession session = StpUtil.getSessionByLoginId(userId);
-        SysUser sysUser = baseJdbcDao.findById(SysUser.class, (Serializable) userId);
-        SysUserDTO sysUserDTO = new SysUserDTO();
-        BeanUtils.copyProperties(sysUser, sysUserDTO);
+    public List<SysOrgRoleDTO> getUserRoles(Object userId) {
         //用户拥有的机构角色岗位，包括所在用户组的机构角色岗位
         String sql = """
                     select
@@ -351,15 +354,7 @@ public class SysLoginService extends BaseServiceImpl {
                     left join sys_org o on o.id = tem.sys_org_id
                     left join sys_role r on r.id = tem.sys_role_id
                 """;
-        List<SysOrgRoleDTO> roles = baseJdbcDao.findList(SysOrgRoleDTO.class, sql, userId, userId);
-        String roleIds = roles.stream().map(i -> i.getSysRoleId().toString()).collect(Collectors.joining(","));
-        if (roleIds.isEmpty()) {
-            throw new MyException("该用户未分配角色，无法登录!");
-        }
-        SysLoginUserInfoDTO loginUserInfoDTO = new SysLoginUserInfoDTO();
-        loginUserInfoDTO.setUser(sysUserDTO);
-        loginUserInfoDTO.setRoles(roles);
-        session.set(LoginUtil.SYS_USER_KEY, loginUserInfoDTO);
+        return baseJdbcDao.findList(SysOrgRoleDTO.class, sql, userId, userId);
     }
 
     /**
