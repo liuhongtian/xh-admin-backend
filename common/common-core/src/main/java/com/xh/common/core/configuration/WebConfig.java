@@ -1,32 +1,23 @@
 package com.xh.common.core.configuration;
 
-import cn.dev33.satoken.exception.NotWebContextException;
-import cn.dev33.satoken.stp.StpUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import com.xh.common.core.Constant;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Resource;
 import jakarta.servlet.Filter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.reactive.function.client.ClientRequest;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -68,7 +59,7 @@ public class WebConfig implements WebMvcConfigurer {
      * 过滤器配置
      */
     @Bean
-    public FilterRegistrationBean filterRegistrationBean() {
+    public FilterRegistrationBean<Filter> filterRegistrationBean() {
         FilterRegistrationBean<Filter> filterFilterRegistrationBean = new FilterRegistrationBean<>();
         filterFilterRegistrationBean.setFilter(myFilter);
         filterFilterRegistrationBean.setOrder(1);//执行的顺序
@@ -118,32 +109,5 @@ public class WebConfig implements WebMvcConfigurer {
                 .deserializers(new LocalDateDeserializer(DateTimeFormatter.ofPattern(DATE_FORMAT)))
                 .modulesToInstall(new ParameterNamesModule());
         return builder.build();
-    }
-
-    /**
-     * 通用跨服务用WebClientBuilder，携带鉴权token，设置序列化内容，默认启用负载均衡
-     */
-    @Bean(name = "myWebClientBuilder")
-    @Scope("prototype")
-    @LoadBalanced
-    WebClient.Builder getMyWebClientBuilder() {
-        return WebClient.builder()
-                //过滤器重构请求，携带鉴权token
-                .filter((request, next) -> {
-                    final ClientRequest.Builder req = ClientRequest.from(request);
-                    try {
-                        req.header(StpUtil.getTokenName(), StpUtil.getTokenValue());
-                    } catch (NotWebContextException e) {
-                        //非web环境则传输一个固定字符串，标识自动程序执行跨服务
-                        req.header(Constant.AUTO_FEIGN_KEY, "自动程序跨服务");
-                    }
-                    return next.exchange(req.build());
-                })
-                //序列化配置
-                .exchangeStrategies(ExchangeStrategies.builder()
-                        .codecs(configurer -> configurer.defaultCodecs().jackson2JsonDecoder(
-                                new Jackson2JsonDecoder(WebConfig.getDefaultObjectMapper())
-                        )).build()
-                );
     }
 }
