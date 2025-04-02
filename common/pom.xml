@@ -18,6 +18,6 @@
         <module>common-log</module>
         <module>common-swagger</module>
         <module>common-xxljob</module>
-        <module>common-nacos</module>
+        <!--module>common-nacos</module-->
     </modules>
 </project>

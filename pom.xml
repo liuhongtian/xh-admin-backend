@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
     <parent>
@@ -116,11 +116,11 @@
                 <artifactId>common-xxljob</artifactId>
                 <version>${xh-admin.version}</version>
             </dependency>
-            <dependency>
+            <!--dependency>
                 <groupId>com.xh</groupId>
                 <artifactId>common-nacos</artifactId>
                 <version>${xh-admin.version}</version>
-            </dependency>
+            </dependency-->
             <dependency>
                 <groupId>com.xh</groupId>
                 <artifactId>system-client</artifactId>
@@ -193,6 +193,19 @@
         <!--  参考文档 https://docs.spring.io/spring-boot/docs/3.1.1/maven-plugin/reference/htmlsingle/#packaging      -->
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>

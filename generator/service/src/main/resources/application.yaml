@@ -2,7 +2,7 @@ sys:
   auth:
     tokenHeaderName: auth-token
 server:
-  port: ${SERVER_PORT:6003}
+  port: ${SERVER_PORT:8080}
 spring:
   application:
     name: generator
@@ -13,20 +13,22 @@ spring:
       - http://192.168.**
   datasource:
     first:
-      url: jdbc:mysql://localhost:3306/bms?characterEncoding=utf-8
+      #url: jdbc:mysql://mysql:3306/xh_admin?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true
+      url: jdbc:mysql://mysql:3306/xh_admin?characterEncoding=utf-8&nullCatalogMeansCurrent=true
       username: root
-      password: 123456
+      password: 1qaz@WSX#EDC
       configuration:
         maximum-pool-size: 20
     second:
-      url: jdbc:postgresql://localhost:5432/bms
-      username: postgres
-      password: 123456
+      #url: jdbc:mysql://mysql:3306/xh_admin_bak?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true
+      url: jdbc:mysql://mysql:3306/xh_admin_bak?characterEncoding=utf-8&nullCatalogMeansCurrent=true
+      username: root
+      password: 1qaz@WSX#EDC
       configuration:
         maximum-pool-size: 20
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
       database: 0
       timeout: 60000
@@ -46,12 +48,12 @@ xxl:
   job:
     admin:
       ### 调度中心部署根地址 [选填]：如调度中心集群部署存在多个地址则用逗号分隔。执行器将会使用该地址进行"执行器心跳注册"和"任务结果回调"；为空则关闭自动注册；
-      addresses: http://122.51.118.42:8088/xxl-job-admin
+      addresses: http://xxl-job-admin:8080/xxl-job-admin
     ### 执行器通讯TOKEN [选填]：非空时启用；
     accessToken: default_token
 
 minio:
-  endpoint: http://122.51.118.42:9000
-  access-key: QEGiz63wnKckxgmvTwre
-  secret-key: CoWs7QBrFjsEonoFjkOx9eQhZGfE74n9VlmVNMOM
+  endpoint: http://minio:9000
+  access-key: guyxgd9BCpiNwMo2h1AT
+  secret-key: 1nrkVhcgncwjB0eRd1eGSjPNe24Be9mW2sySctQx
   bucket: bucket1
