@@ -1,3 +1,4 @@
+env: development
 sys:
   auth:
     tokenHeaderName: auth-token
